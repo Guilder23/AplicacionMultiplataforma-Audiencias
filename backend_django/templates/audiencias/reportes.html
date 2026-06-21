@@ -39,9 +39,9 @@
                     <div class="legend">
                         {% for item in summary_by_process %}
                         <div class="legend-item">
-                            <div class="legend-color" style="background: {% cycle '#b0122b' '#4A90E2' '#FFA500' '#50C878' '#9B59B6' %};"></div>
-                            <span style="flex: 1;">{{ item.tipo_proceso }}</span>
-                            <span style="font-weight: 600;">{{ item.count }}</span>
+                            <div class="legend-color legend-color-{{ forloop.counter0 }}"></div>
+                            <span class="legend-item-label">{{ item.tipo_proceso }}</span>
+                            <span class="legend-item-count">{{ item.count }}</span>
                         </div>
                         {% endfor %}
                     </div>

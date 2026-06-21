@@ -1,7 +1,7 @@
 .calendar-container {
     background: white;
-    border-radius: 20px;
-    padding: 28px;
+    border-radius: 16px;
+    padding: 20px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.05);
     border: 1px solid rgba(0,0,0,0.04);
 }
@@ -9,7 +9,7 @@
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
+    gap: 8px;
     margin-top: 20px;
 }
 
@@ -18,10 +18,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s;
     font-weight: 500;
+    font-size: 14px;
 }
 
 .calendar-day:hover {
@@ -46,11 +47,21 @@
 .calendar-day.has-event::after {
     content: '';
     position: absolute;
-    bottom: 8px;
+    bottom: 6px;
     width: 6px;
     height: 6px;
     background: #B0122B;
     border-radius: 50%;
+}
+
+.calendar-day--weekday {
+    color: #6b7280;
+    font-weight: 700;
+    cursor: default;
+}
+
+.calendar-day--empty {
+    cursor: default;
 }
 
 .calendar-header {
@@ -64,11 +75,11 @@
     background: #F4F6F9;
     border: 1px solid #e5e7eb;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 16px;
     color: #B0122B;
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     transition: all 0.2s;
 }
 
@@ -78,20 +89,20 @@
 }
 
 .calendar-list-section {
-    margin-top: 28px;
+    margin-top: 24px;
 }
 
 .calendar-list-title {
     margin-bottom: 16px;
-    font-size: 20px;
+    font-size: 18px;
     color: #1A1A2E;
 }
 
 .audiencia-item {
     background: white;
-    padding: 18px;
-    border-radius: 16px;
-    margin-bottom: 14px;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 12px;
     border-left: 4px solid #B0122B;
     box-shadow: 0 4px 20px rgba(0,0,0,0.05);
     border: 1px solid rgba(0,0,0,0.04);
@@ -131,7 +142,7 @@
     background: rgba(176, 18, 43, 0.1);
     color: #B0122B;
     padding: 6px 12px;
-    border-radius: 12px;
+    border-radius: 10px;
     font-size: 12px;
     font-weight: 700;
     white-space: nowrap;
