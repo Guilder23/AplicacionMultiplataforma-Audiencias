@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio - Sistema de Audiencias{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <div class="container">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Buscar audiencias..." id="searchInput">
+            <i class="fas fa-sliders-h"></i>
+        </div>
+
+        <a href="{% url 'audiencia_create' %}" class="btn btn-primary btn-block">
+            <i class="fas fa-plus"></i>
+            Nueva Audiencia
+        </a>
+
+        <div class="stats-grid">
+            <div class="stat-card highlight">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-value">{{ summary.total }}</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon info">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-value">{{ summary.programadas }}</div>
+                <div class="stat-label">Programadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-value">{{ summary.concluidas }}</div>
+                <div class="stat-label">Concluidas</div>
+            </div>
+        </div>
+
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">Próximas Audiencias</h2>
+                <a href="{% url 'audiencia_list' %}" class="section-action">Ver todas</a>
+            </div>
+
+            {% if proximas %}
+                {% for audiencia in proximas %}
+                    <div class="audiencia-card">
+                        <div class="audiencia-time">
+                            <div class="time">{{ audiencia.fecha_hora|time:"H:i" }}</div>
+                            <div class="date">{{ audiencia.fecha_hora|date:"d M" }}</div>
+                        </div>
+                        <div class="audiencia-content">
+                            <div class="audiencia-title">{{ audiencia.tipo_proceso }}</div>
+                            <div class="audiencia-subtitle">NUREJ {{ audiencia.nurej }}</div>
+                            <div class="audiencia-parties">{{ audiencia.demandante }} c/ {{ audiencia.demandado }}</div>
+                            <div class="audiencia-room">{{ audiencia.sala }}</div>
+                        </div>
+                        <div class="audiencia-status status-{{ audiencia.estado|lower|cut:' ' }}">
+                            {{ audiencia.estado }}
+                        </div>
+                        <a href="{% url 'audiencia_detail' audiencia.pk %}" class="audiencia-link"></a>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h3>No hay audiencias próximas</h3>
+                    <p>Registra una audiencia para verla aquí.</p>
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Acciones Rápidas</h2>
+            <div class="quick-actions">
+                <a href="#" class="quick-action">
+                    <i class="fas fa-calendar"></i>
+                    <span>Calendario</span>
+                </a>
+                <a href="#" class="quick-action">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Reportes</span>
+                </a>
+                <a href="#" class="quick-action">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Estadísticas</span>
+                </a>
+                <a href="{% url 'audiencia_list' %}" class="quick-action">
+                    <i class="fas fa-filter"></i>
+                    <span>Filtros</span>
+                </a>
+            </div>
+        </section>
+    </div>
+</main>
+{% endblock %}

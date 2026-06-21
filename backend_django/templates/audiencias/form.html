@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Sistema de Audiencias{% endblock %}
+
+{% block header %}
+<header class="header detail-header">
+    <div class="header-content">
+        <div class="header-left">
+            <a href="{% if audiencia %}{% url 'audiencia_detail' audiencia.pk %}{% else %}{% url 'dashboard' %}{% endif %}" class="back-btn">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <h1>{{ title }}</h1>
+        </div>
+    </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <div class="container">
+        <form method="POST" class="form-container">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-error">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="{{ form.nurej.id_for_label }}">{{ form.nurej.label }}</label>
+                {{ form.nurej }}
+                {% if form.nurej.errors %}
+                    <div class="error-text">{{ form.nurej.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.tipo_proceso.id_for_label }}">{{ form.tipo_proceso.label }}</label>
+                {{ form.tipo_proceso }}
+                {% if form.tipo_proceso.errors %}
+                    <div class="error-text">{{ form.tipo_proceso.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.tipo_audiencia.id_for_label }}">{{ form.tipo_audiencia.label }}</label>
+                {{ form.tipo_audiencia }}
+                {% if form.tipo_audiencia.errors %}
+                    <div class="error-text">{{ form.tipo_audiencia.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.demandante.id_for_label }}">{{ form.demandante.label }}</label>
+                {{ form.demandante }}
+                {% if form.demandante.errors %}
+                    <div class="error-text">{{ form.demandante.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.demandado.id_for_label }}">{{ form.demandado.label }}</label>
+                {{ form.demandado }}
+                {% if form.demandado.errors %}
+                    <div class="error-text">{{ form.demandado.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.fecha_hora.id_for_label }}">{{ form.fecha_hora.label }}</label>
+                    {{ form.fecha_hora }}
+                    {% if form.fecha_hora.errors %}
+                        <div class="error-text">{{ form.fecha_hora.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.sala.id_for_label }}">{{ form.sala.label }}</label>
+                {{ form.sala }}
+                {% if form.sala.errors %}
+                    <div class="error-text">{{ form.sala.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.juez.id_for_label }}">{{ form.juez.label }}</label>
+                {{ form.juez }}
+                {% if form.juez.errors %}
+                    <div class="error-text">{{ form.juez.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.estado.id_for_label }}">{{ form.estado.label }}</label>
+                {{ form.estado }}
+                {% if form.estado.errors %}
+                    <div class="error-text">{{ form.estado.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group" id="motivoSuspensionGroup">
+                <label for="{{ form.motivo_suspension.id_for_label }}">{{ form.motivo_suspension.label }}</label>
+                {{ form.motivo_suspension }}
+                {% if form.motivo_suspension.errors %}
+                    <div class="error-text">{{ form.motivo_suspension.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.observaciones.id_for_label }}">{{ form.observaciones.label }}</label>
+                {{ form.observaciones }}
+                {% if form.observaciones.errors %}
+                    <div class="error-text">{{ form.observaciones.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+                {% if audiencia %}Actualizar Audiencia{% else %}Guardar Audiencia{% endif %}
+            </button>
+        </form>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const estadoSelect = document.getElementById('{{ form.estado.id_for_label }}');
+const motivoSuspensionGroup = document.getElementById('motivoSuspensionGroup');
+
+function toggleMotivoSuspension() {
+    if (estadoSelect.value === 'Suspendida') {
+        motivoSuspensionGroup.style.display = 'block';
+    } else {
+        motivoSuspensionGroup.style.display = 'none';
+    }
+}
+
+estadoSelect.addEventListener('change', toggleMotivoSuspension);
+toggleMotivoSuspension();
+</script>
+{% endblock %}

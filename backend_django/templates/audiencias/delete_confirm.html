@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar - {{ audiencia.tipo_proceso }}{% endblock %}
+
+{% block header %}
+<header class="header detail-header">
+    <div class="header-content">
+        <div class="header-left">
+            <a href="{% url 'audiencia_detail' audiencia.pk %}" class="back-btn">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <h1>Eliminar Audiencia</h1>
+        </div>
+    </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <div class="container">
+        <div class="delete-confirm">
+            <div class="delete-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2>¿Estás seguro?</h2>
+            <p>Esta acción eliminará la audiencia:</p>
+            <div class="delete-info">
+                <strong>{{ audiencia.tipo_proceso }}</strong><br>
+                NUREJ: {{ audiencia.nurej }}<br>
+                Fecha: {{ audiencia.fecha_hora|date:"d/m/Y H:i" }}
+            </div>
+            <p class="delete-warning">Esta acción no se puede deshacer.</p>
+
+            <form method="POST" class="delete-actions">
+                {% csrf_token %}
+                <a href="{% url 'audiencia_detail' audiencia.pk %}" class="btn btn-secondary">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-danger">
+                    Eliminar
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+{% endblock %}
