@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 import json
 
 
@@ -49,6 +50,7 @@ class Audiencia(models.Model):
         ('Solicitud de las partes', 'Solicitud de las partes'),
     ]
 
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='audiencias', verbose_name='Usuario', null=True, blank=True)
     nurej = models.CharField(max_length=100, verbose_name='NUREJ')
     demandante = models.CharField(max_length=255, verbose_name='Demandante')
     demandado = models.CharField(max_length=255, verbose_name='Demandado')

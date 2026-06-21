@@ -22,7 +22,9 @@
                 <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
                 {{ form.username }}
                 {% if form.username.errors %}
-                    <div class="error-text">{{ form.username.errors.0 }}</div>
+                  <div class="error-text">
+                    {% for error in form.username.errors %}{{ error }}{% endfor %}
+                  </div>
                 {% endif %}
             </div>
 
@@ -30,7 +32,9 @@
                 <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
                 {{ form.first_name }}
                 {% if form.first_name.errors %}
-                    <div class="error-text">{{ form.first_name.errors.0 }}</div>
+                  <div class="error-text">
+                    {% for error in form.first_name.errors %}{{ error }}{% endfor %}
+                  </div>
                 {% endif %}
             </div>
 
@@ -38,7 +42,9 @@
                 <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
                 {{ form.last_name }}
                 {% if form.last_name.errors %}
-                    <div class="error-text">{{ form.last_name.errors.0 }}</div>
+                  <div class="error-text">
+                    {% for error in form.last_name.errors %}{{ error }}{% endfor %}
+                  </div>
                 {% endif %}
             </div>
 
@@ -46,27 +52,24 @@
                 <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
                 {{ form.email }}
                 {% if form.email.errors %}
-                    <div class="error-text">{{ form.email.errors.0 }}</div>
+                  <div class="error-text">
+                    {% for error in form.email.errors %}{{ error }}{% endfor %}
+                  </div>
                 {% endif %}
             </div>
 
-            {% if not user %}
-                <div class="form-group">
-                    <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
-                    {{ form.password1 }}
-                    {% if form.password1.errors %}
-                        <div class="error-text">{{ form.password1.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
-                    {{ form.password2 }}
-                    {% if form.password2.errors %}
-                        <div class="error-text">{{ form.password2.errors.0 }}</div>
-                    {% endif %}
-                </div>
-            {% endif %}
+            <div class="form-group">
+                <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+                {{ form.password }}
+                {% if form.password.help_text %}
+                  <small style="color: var(--text-muted);">{{ form.password.help_text }}</small>
+                {% endif %}
+                {% if form.password.errors %}
+                  <div class="error-text">
+                    {% for error in form.password.errors %}{{ error }}{% endfor %}
+                  </div>
+                {% endif %}
+            </div>
 
             <button type="submit" class="btn btn-primary btn-block">
                 <i class="fas fa-save"></i> Guardar

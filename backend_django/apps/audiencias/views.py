@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.db.models import Count, Q
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
-from django.contrib.auth import login as auth_login, authenticate
+from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
 from .models import Audiencia
 from .forms import AudienciaForm, UserRegistrationForm
 from django.http import JsonResponse
@@ -15,7 +15,8 @@ import json
 @login_required
 def dashboard(request):
     now = timezone.now()
-    audiencias = Audiencia.objects.all()
+    # Solo las audiencias del usuario actual
+    audiencias = Audiencia.objects.filter(usuario=request.user)
 
     summary = {
         'total': audiencias.count(),
@@ -39,11 +40,62 @@ def dashboard(request):
 
 
 @login_required
+def calendario(request):
+    from datetime import datetime
+    date_str = request.GET.get('date', datetime.now().strftime('%Y-%m-%d'))
+    selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    
+    # Solo las audiencias del usuario actual
+    audiencias = Audiencia.objects.filter(
+        usuario=request.user,
+        fecha_hora__date=selected_date
+    ).order_by('fecha_hora')
+    
+    # Obtener todas las fechas con audiencias para marcarlas en el calendario
+    all_dates = Audiencia.objects.filter(usuario=request.user).dates('fecha_hora', 'day')
+    
+    context = {
+        'audiencias': audiencias,
+        'selected_date': selected_date,
+        'all_dates': [d.strftime('%Y-%m-%d') for d in all_dates],
+    }
+    
+    return render(request, 'audiencias/calendario.html', context)
+
+
+@login_required
+def reportes(request):
+    from django.db.models import Count
+    # Solo las audiencias del usuario actual
+    audiencias = Audiencia.objects.filter(usuario=request.user)
+    
+    # Resumen por estado
+    summary_by_status = {
+        'Total': audiencias.count(),
+        'Programada': audiencias.filter(estado='Programada').count(),
+        'En curso': audiencias.filter(estado='En curso').count(),
+        'Concluida': audiencias.filter(estado='Concluida').count(),
+        'Suspendida': audiencias.filter(estado='Suspendida').count(),
+        'Reprogramada': audiencias.filter(estado='Reprogramada').count(),
+    }
+    
+    # Resumen por tipo de proceso
+    summary_by_process = audiencias.values('tipo_proceso').annotate(count=Count('id')).order_by('-count')
+    
+    context = {
+        'summary_by_status': summary_by_status,
+        'summary_by_process': summary_by_process,
+    }
+    
+    return render(request, 'audiencias/reportes.html', context)
+
+
+@login_required
 def audiencia_list(request):
     query = request.GET.get('q', '')
     estado = request.GET.get('estado', '')
 
-    audiencias = Audiencia.objects.all()
+    audiencias = Audiencia.objects.filter(usuario=request.user)
 
     if query:
         audiencias = audiencias.filter(
@@ -69,7 +121,7 @@ def audiencia_list(request):
 
 @login_required
 def audiencia_detail(request, pk):
-    audiencia = get_object_or_404(Audiencia, pk=pk)
+    audiencia = get_object_or_404(Audiencia, pk=pk, usuario=request.user)
     context = {'audiencia': audiencia}
     return render(request, 'audiencias/detail.html', context)
 
@@ -80,6 +132,7 @@ def audiencia_create(request):
         form = AudienciaForm(request.POST)
         if form.is_valid():
             audiencia = form.save(commit=False)
+            audiencia.usuario = request.user
             audiencia.add_to_historial(f'Audiencia registrada con estado {audiencia.estado}')
             audiencia.save()
             messages.success(request, 'Audiencia registrada correctamente')
@@ -93,7 +146,7 @@ def audiencia_create(request):
 
 @login_required
 def audiencia_edit(request, pk):
-    audiencia = get_object_or_404(Audiencia, pk=pk)
+    audiencia = get_object_or_404(Audiencia, pk=pk, usuario=request.user)
 
     if request.method == 'POST':
         form = AudienciaForm(request.POST, instance=audiencia)
@@ -112,7 +165,7 @@ def audiencia_edit(request, pk):
 
 @login_required
 def audiencia_delete(request, pk):
-    audiencia = get_object_or_404(Audiencia, pk=pk)
+    audiencia = get_object_or_404(Audiencia, pk=pk, usuario=request.user)
 
     if request.method == 'POST':
         audiencia.delete()
@@ -125,7 +178,7 @@ def audiencia_delete(request, pk):
 
 @login_required
 def audiencia_change_status(request, pk):
-    audiencia = get_object_or_404(Audiencia, pk=pk)
+    audiencia = get_object_or_404(Audiencia, pk=pk, usuario=request.user)
 
     if request.method == 'POST':
         nuevo_estado = request.POST.get('estado')
@@ -205,6 +258,11 @@ def user_delete(request, pk):
     return render(request, 'audiencias/users/delete_confirm.html', context)
 
 
+def logout_view(request):
+    auth_logout(request)
+    return redirect('login')
+
+
 @csrf_exempt
 def api_login(request):
     if request.method == 'POST':
@@ -236,11 +294,22 @@ def api_login(request):
 
 
 @csrf_exempt
+def api_logout(request):
+    if request.method == 'POST':
+        auth_logout(request)
+        return JsonResponse({'success': True, 'message': 'Cierre de sesión exitoso'})
+    return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+
+
+@csrf_exempt
 def api_audiencias(request, pk=None):
     if request.method == 'GET':
+        # Para la API, primero necesitamos autenticar al usuario
+        if not request.user.is_authenticated:
+            return JsonResponse({'success': False, 'message': 'No autorizado'}, status=401)
+            
         if pk:
-            # Obtener una audiencia específica
-            audiencia = get_object_or_404(Audiencia, pk=pk)
+            audiencia = get_object_or_404(Audiencia, pk=pk, usuario=request.user)
             data = {
                 'id': audiencia.id,
                 'nurej': audiencia.nurej,
@@ -258,8 +327,7 @@ def api_audiencias(request, pk=None):
             }
             return JsonResponse({'success': True, 'audiencia': data})
         else:
-            # Obtener todas las audiencias
-            audiencias = Audiencia.objects.all().order_by('-fecha_hora')
+            audiencias = Audiencia.objects.filter(usuario=request.user).order_by('-fecha_hora')
             data = []
             for a in audiencias:
                 data.append({
@@ -279,11 +347,14 @@ def api_audiencias(request, pk=None):
             return JsonResponse({'success': True, 'audiencias': data})
     
     elif request.method == 'POST':
-        # Crear nueva audiencia
+        if not request.user.is_authenticated:
+            return JsonResponse({'success': False, 'message': 'No autorizado'}, status=401)
+            
         data = json.loads(request.body)
         form = AudienciaForm(data)
         if form.is_valid():
             audiencia = form.save(commit=False)
+            audiencia.usuario = request.user
             audiencia.add_to_historial(f'Audiencia registrada con estado {audiencia.estado}')
             audiencia.save()
             return JsonResponse({
@@ -301,8 +372,10 @@ def api_audiencias(request, pk=None):
         }, status=400)
     
     elif request.method == 'PUT' and pk:
-        # Actualizar audiencia
-        audiencia = get_object_or_404(Audiencia, pk=pk)
+        if not request.user.is_authenticated:
+            return JsonResponse({'success': False, 'message': 'No autorizado'}, status=401)
+            
+        audiencia = get_object_or_404(Audiencia, pk=pk, usuario=request.user)
         data = json.loads(request.body)
         form = AudienciaForm(data, instance=audiencia)
         if form.is_valid():
@@ -320,8 +393,10 @@ def api_audiencias(request, pk=None):
         }, status=400)
     
     elif request.method == 'DELETE' and pk:
-        # Eliminar audiencia
-        audiencia = get_object_or_404(Audiencia, pk=pk)
+        if not request.user.is_authenticated:
+            return JsonResponse({'success': False, 'message': 'No autorizado'}, status=401)
+            
+        audiencia = get_object_or_404(Audiencia, pk=pk, usuario=request.user)
         audiencia.delete()
         return JsonResponse({
             'success': True,

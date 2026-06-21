@@ -13,29 +13,30 @@
 <body>
     <div class="app-container">
         {% block header %}
-        <header class="header">
-            <div class="header-content">
-                <div class="header-left">
-                    <div class="logo">
-                        <i class="fas fa-balance-scale"></i>
-                        <div>
-                            <h1>Sistema de Audiencias</h1>
-                            <p>Materia de Familia</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="header-right">
-                <div class="user-info">
-                    <span class="user-name">{{ user.first_name|default:user.username }}</span>
-                </div>
-                <div class="notifications">
-                    <i class="fas fa-bell"></i>
-                    <span class="badge">2</span>
+<header class="header">
+    <div class="header-content">
+        <div class="header-left">
+            <div class="logo">
+                <i class="fas fa-balance-scale"></i>
+                <div>
+                    <h1>Sistema de Audiencias</h1>
+                    <p>Materia de Familia</p>
                 </div>
             </div>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <i class="fas fa-user-circle user-avatar"></i>
+                <span class="user-name">{{ user.first_name|default:user.username }}</span>
             </div>
-        </header>
-        {% endblock %}
+            <div class="notifications">
+                <i class="fas fa-bell"></i>
+                <span class="badge">2</span>
+            </div>
+        </div>
+    </div>
+</header>
+{% endblock %}
 
         {% block content %}{% endblock %}
 
@@ -48,6 +49,14 @@
             <a href="{% url 'audiencia_list' %}" class="nav-item {% if 'audiencia' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="fas fa-gavel"></i>
                 <span>Audiencias</span>
+            </a>
+            <a href="{% url 'calendario' %}" class="nav-item {% if request.resolver_match.url_name == 'calendario' %}active{% endif %}">
+                <i class="fas fa-calendar"></i>
+                <span>Calendario</span>
+            </a>
+            <a href="{% url 'reportes' %}" class="nav-item {% if request.resolver_match.url_name == 'reportes' %}active{% endif %}">
+                <i class="fas fa-chart-bar"></i>
+                <span>Reportes</span>
             </a>
             {% if user.is_superuser %}
             <a href="{% url 'user_list' %}" class="nav-item {% if 'user' in request.resolver_match.url_name %}active{% endif %}">

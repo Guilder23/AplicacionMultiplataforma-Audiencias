@@ -100,8 +100,8 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AudienciaProvider>(
-      builder: (context, provider, _) {
+    return Consumer2<AudienciaProvider, AuthProvider>(
+      builder: (context, provider, authProvider, _) {
         final summary = provider.statusSummary;
         final upcoming = provider.upcomingAudiencias.take(3).toList();
 
@@ -131,20 +131,20 @@ class DashboardScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 12),
-                            const Expanded(
+                            Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Sistema de Audiencias',
-                                    style: TextStyle(
+                                    'Hola, ${authProvider.displayName}',
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 18,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                  SizedBox(height: 2),
-                                  Text(
+                                  const SizedBox(height: 2),
+                                  const Text(
                                     'Materia de Familia',
                                     style: TextStyle(
                                       color: Color(0xFFF6D8DD),

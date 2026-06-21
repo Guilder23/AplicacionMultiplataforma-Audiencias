@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Reportes - Sistema de Audiencias{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #b0122b;
+        margin: 8px 0;
+    }
+    .stat-label {
+        font-size: 14px;
+        color: #666;
+    }
+    .chart-container {
+        margin-top: 20px;
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+    .bar-chart {
+        display: flex;
+        align-items: end;
+        justify-content: space-around;
+        gap: 20px;
+        height: 200px;
+        padding: 20px 0;
+    }
+    .bar {
+        flex: 1;
+        background: #b0122b;
+        border-radius: 8px 8px 0 0;
+        position: relative;
+        max-width: 60px;
+    }
+    .bar-label {
+        position: absolute;
+        bottom: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 12px;
+        text-align: center;
+        width: 80px;
+    }
+    .bar-value {
+        position: absolute;
+        top: -24px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 14px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <div class="container">
+        <h1 class="page-title">Reportes y Estadísticas</h1>
+        
+        <!-- Estadísticas generales -->
+        <div class="grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div class="stat-card">
+                <div class="stat-value">{{ summary_by_status.Total }}</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: #4A90E2;">{{ summary_by_status.Programada }}</div>
+                <div class="stat-label">Programadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: #50C878;">{{ summary_by_status.Concluida }}</div>
+                <div class="stat-label">Concluidas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: #FFA500;">{{ summary_by_status.Suspendida }}</div>
+                <div class="stat-label">Suspendidas</div>
+            </div>
+        </div>
+        
+        <!-- Por tipo de proceso -->
+        <div class="card">
+            <h3 style="margin-bottom: 20px;">Por tipo de proceso</h3>
+            {% if summary_by_process %}
+                <div class="chart-container">
+                    <div class="legend">
+                        {% for item in summary_by_process %}
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: {% cycle '#b0122b' '#4A90E2' '#FFA500' '#50C878' '#9B59B6' %};"></div>
+                            <span style="flex: 1;">{{ item.tipo_proceso }}</span>
+                            <span style="font-weight: 600;">{{ item.count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div style="text-align: center; color: #888; padding: 40px;">
+                    No hay datos para mostrar
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Por estado -->
+        <div class="card">
+            <h3 style="margin-bottom: 20px;">Por estado</h3>
+            <div class="bar-chart">
+                <div class="bar" style="height: {{ summary_by_status.Programada }}px; background: #4A90E2; height: {% widthratio summary_by_status.Programada summary_by_status.Total 180 %}px;">
+                    <div class="bar-value">{{ summary_by_status.Programada }}</div>
+                    <div class="bar-label">Programadas</div>
+                </div>
+                <div class="bar" style="background: #50C878; height: {% widthratio summary_by_status.Concluida summary_by_status.Total 180 %}px;">
+                    <div class="bar-value">{{ summary_by_status.Concluida }}</div>
+                    <div class="bar-label">Concluidas</div>
+                </div>
+                <div class="bar" style="background: #FFA500; height: {% widthratio summary_by_status.Suspendida summary_by_status.Total 180 %}px;">
+                    <div class="bar-value">{{ summary_by_status.Suspendida }}</div>
+                    <div class="bar-label">Suspendidas</div>
+                </div>
+                <div class="bar" style="background: #9B59B6; height: {% widthratio summary_by_status.Reprogramada summary_by_status.Total 180 %}px;">
+                    <div class="bar-value">{{ summary_by_status.Reprogramada }}</div>
+                    <div class="bar-label">Reprogramadas</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

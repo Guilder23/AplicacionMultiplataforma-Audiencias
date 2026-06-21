@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import '../models/audiencia.dart';
 
 class ApiService {
-  // static const String baseUrl = 'http://10.0.2.2:8000/api'; // Para emulador Android
   static const String baseUrl = 'http://localhost:8000/api'; // Para iOS o web
 
   static final ApiService _instance = ApiService._internal();
@@ -31,6 +30,28 @@ class ApiService {
     } catch (e) {
       return {
         'success': false,
+        'message': 'Error de conexión: $e'
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> logout() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/logout/'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return {
+        'success': false,
+        'message': 'Error al cerrar sesión'
+      };
+    } catch (e) {
+      return {
+        'success': true, // Aunque haya error, permitimos cerrar sesión
         'message': 'Error de conexión: $e'
       };
     }

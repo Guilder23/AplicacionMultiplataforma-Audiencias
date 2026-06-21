@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}Calendario - Sistema de Audiencias{% endblock %}
+
+{% block extra_css %}
+<style>
+    .calendar-container {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        margin-top: 16px;
+    }
+    .calendar-day {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+    .calendar-day:hover {
+        background: #f7f3f4;
+    }
+    .calendar-day.today {
+        background: rgba(176, 18, 43, 0.2);
+        color: #b0122b;
+    }
+    .calendar-day.selected {
+        background: #b0122b;
+        color: white;
+    }
+    .calendar-day.has-event {
+        position: relative;
+    }
+    .calendar-day.has-event::after {
+        content: '';
+        position: absolute;
+        bottom: 8px;
+        width: 6px;
+        height: 6px;
+        background: #b0122b;
+        border-radius: 50%;
+    }
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    .calendar-header button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 20px;
+        color: #b0122b;
+    }
+    .audiencia-item {
+        background: white;
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        border-left: 4px solid #b0122b;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <div class="container">
+        <h1 class="page-title">Calendario</h1>
+        
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <button onclick="changeMonth(-1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <h3 id="currentMonth"></h3>
+                <button onclick="changeMonth(1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Calendario se genera con JS -->
+            </div>
+        </div>
+        
+        <div style="margin-top: 24px;">
+            <h3 style="margin-bottom: 16px;">Audiencias del {{ selected_date.day }}/{{ selected_date.month }}/{{ selected_date.year }}</h3>
+            
+            {% if audiencias %}
+                {% for audiencia in audiencias %}
+                <a href="{% url 'audiencia_detail' audiencia.pk %}" class="audiencia-item">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <strong style="color: #b0122b;">{{ audiencia.nurej }}</strong>
+                            <p style="margin: 4px 0;">Demandante: {{ audiencia.demandante }}</p>
+                            <p style="margin: 4px 0;">Demandado: {{ audiencia.demandado }}</p>
+                            <p style="margin: 4px 0; color: #666;">
+                                <i class="fas fa-clock"></i> {{ audiencia.fecha_hora|time:"H:i" }}
+                            </p>
+                        </div>
+                        <span class="badge" style="background: #f7f3f4; color: #b0122b; padding: 4px 8px; border-radius: 8px; font-size: 12px;">
+                            {{ audiencia.estado }}
+                        </span>
+                    </div>
+                </a>
+                {% endfor %}
+            {% else %}
+                <div style="text-align: center; padding: 40px; color: #888;">
+                    <i class="fas fa-calendar" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+                    <p>No hay audiencias en esta fecha</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const allDates = {{ all_dates|safe }};
+    let currentDate = new Date('{{ selected_date }}');
+    let displayMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+    function renderCalendar() {
+        const year = displayMonth.getFullYear();
+        const month = displayMonth.getMonth();
+        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        
+        document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+        
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = '';
+        
+        // Días de la semana
+        const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+        dayNames.forEach(day => {
+            const div = document.createElement('div');
+            div.textContent = day;
+            div.style.fontWeight = '600';
+            div.style.textAlign = 'center';
+            grid.appendChild(div);
+        });
+        
+        // Espacios vacíos antes del primer día
+        for (let i = 0; i < firstDay; i++) {
+            const div = document.createElement('div');
+            grid.appendChild(div);
+        }
+        
+        // Días del mes
+        for (let day = 1; day <= daysInMonth; day++) {
+            const div = document.createElement('div');
+            div.className = 'calendar-day';
+            div.textContent = day;
+            
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
+            // Verificar si es hoy
+            const today = new Date();
+            if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                div.classList.add('today');
+            }
+            
+            // Verificar si es el día seleccionado
+            if (day === currentDate.getDate() && month === currentDate.getMonth() && year === currentDate.getFullYear()) {
+                div.classList.add('selected');
+            }
+            
+            // Verificar si tiene audiencias
+            if (allDates.includes(dateStr)) {
+                div.classList.add('has-event');
+            }
+            
+            div.onclick = () => {
+                window.location.href = `?date=${dateStr}`;
+            };
+            
+            grid.appendChild(div);
+        }
+    }
+
+    function changeMonth(delta) {
+        displayMonth.setMonth(displayMonth.getMonth() + delta);
+        renderCalendar();
+    }
+
+    renderCalendar();
+</script>
+{% endblock %}

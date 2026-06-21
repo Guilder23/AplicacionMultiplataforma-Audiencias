@@ -65,15 +65,9 @@ class AudienciaForm(forms.ModelForm):
 
 
 class UserRegistrationForm(forms.ModelForm):
-    password1 = forms.CharField(
+    password = forms.CharField(
         label='Contraseña',
-        widget=forms.PasswordInput(attrs={'class': 'form-input', 'placeholder': 'Ingrese contraseña'}),
-        min_length=8,
-        required=False
-    )
-    password2 = forms.CharField(
-        label='Confirmar Contraseña',
-        widget=forms.PasswordInput(attrs={'class': 'form-input', 'placeholder': 'Confirmar contraseña'}),
+        widget=forms.PasswordInput(attrs={'class': 'form-input', 'placeholder': 'Ingrese contraseña (mínimo 8 caracteres)'}),
         min_length=8,
         required=False
     )
@@ -97,39 +91,17 @@ class UserRegistrationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
-            # Estamos editando un usuario, las contraseñas son opcionales
-            self.fields['password1'].help_text = 'Dejar vacío para mantener la misma contraseña'
-            self.fields['password2'].help_text = 'Dejar vacío para mantener la misma contraseña'
+            # Estamos editando: contraseña es opcional
+            self.fields['password'].help_text = 'Dejar en blanco para mantener la misma contraseña'
         else:
-            # Estamos creando un nuevo usuario, las contraseñas son obligatorias
-            self.fields['password1'].required = True
-            self.fields['password2'].required = True
-
-    def clean_password2(self):
-        password1 = self.cleaned_data.get('password1')
-        password2 = self.cleaned_data.get('password2')
-        
-        # Si estamos editando y no se proporcionaron contraseñas, está bien
-        if self.instance and self.instance.pk:
-            if not password1 and not password2:
-                return password2
-        
-        # Si se proporcionó una, la otra también debe estar presente
-        if password1 or password2:
-            if password1 != password2:
-                raise forms.ValidationError('Las contraseñas no coinciden')
-            if len(password1) < 8:
-                raise forms.ValidationError('La contraseña debe tener al menos 8 caracteres')
-        
-        return password2
+            # Estamos creando: contraseña es obligatoria
+            self.fields['password'].required = True
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        password1 = self.cleaned_data.get('password1')
-        
-        if password1:
-            user.set_password(password1)
-        
+        password = self.cleaned_data.get('password')
+        if password:
+            user.set_password(password)
         if commit:
             user.save()
         return user
