@@ -24,6 +24,16 @@
 
         <div class="desktop-only dashboard-desktop-grid">
             <section class="dashboard-main-column">
+                <!-- Search Results -->
+                <div id="searchResultsSection" style="display: none;">
+                    <section class="card dashboard-section-card">
+                        <div class="section-header">
+                            <h2 class="section-title">Resultados de Búsqueda</h2>
+                        </div>
+                        <div id="searchResultsContainer"></div>
+                    </section>
+                </div>
+                
                 <div class="stats-grid dashboard-stats-grid">
                     <div class="stat-card highlight">
                         <div class="stat-icon">
@@ -55,7 +65,7 @@
                     </div>
                 </div>
 
-                <section class="card dashboard-section-card">
+                <section class="card dashboard-section-card" id="proximasSection">
                     <div class="section-header">
                         <h2 class="section-title">Próximas Audiencias</h2>
                         <a href="{% url 'audiencia_list' %}" class="section-action">Ver todas</a>
@@ -143,28 +153,38 @@
             <div class="stats-grid">
                 <div class="stat-card highlight">
                     <div class="stat-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
+                    <i class="fas fa-chart-line"></i>
+                </div>
                     <div class="stat-value">{{ summary.total }}</div>
                     <div class="stat-label">Total</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon info">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
+                    <i class="fas fa-calendar-check"></i>
+                </div>
                     <div class="stat-value">{{ summary.programadas }}</div>
                     <div class="stat-label">Programadas</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon success">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
+                    <i class="fas fa-check-circle"></i>
+                </div>
                     <div class="stat-value">{{ summary.concluidas }}</div>
                     <div class="stat-label">Concluidas</div>
                 </div>
             </div>
 
-            <section class="section">
+            <!-- Mobile Search Results -->
+            <div id="mobileSearchResultsSection" style="display: none;">
+                <section class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Resultados de Búsqueda</h2>
+                    </div>
+                    <div id="mobileSearchResultsContainer"></div>
+                </section>
+            </div>
+
+            <section class="section" id="mobileProximasSection">
                 <div class="section-header">
                     <h2 class="section-title">Próximas Audiencias</h2>
                     <a href="{% url 'audiencia_list' %}" class="section-action">Ver todas</a>
@@ -225,5 +245,8 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+const audienciasData = {{ audiencias_json }};
+</script>
 <script src="{% static 'js/audiencias/dashboard.js' %}"></script>
 {% endblock %}

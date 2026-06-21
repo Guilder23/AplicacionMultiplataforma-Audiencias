@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect, reverse
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count, Q
@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
 from django.core import signing
+from django.utils.safestring import mark_safe
 from .models import Audiencia
 from .forms import AudienciaForm, UserRegistrationForm
 from django.http import JsonResponse
@@ -102,10 +103,25 @@ def dashboard(request):
     proximas = audiencias.filter(
         fecha_hora__gte=now - timezone.timedelta(hours=2)
     ).order_by('fecha_hora')[:3]
+    
+    # Convert all audiencias to JSON for search
+    audiencias_json = []
+    for a in audiencias:
+        audiencias_json.append({
+            'id': a.id,
+            'nurej': a.nurej,
+            'demandante': a.demandante,
+            'demandado': a.demandado,
+            'estado': a.estado,
+            'fecha_hora': a.fecha_hora.strftime('%Y-%m-%d %H:%M'),
+            'sala': a.sala,
+            'detail_url': reverse('audiencia_detail', args=[a.id])
+        })
 
     context = {
         'summary': summary,
         'proximas': proximas,
+        'audiencias_json': mark_safe(json.dumps(audiencias_json, ensure_ascii=False))
     }
 
     return render(request, 'audiencias/dashboard.html', context)
@@ -157,6 +173,8 @@ def reportes(request):
     context = {
         'summary_by_status': summary_by_status,
         'summary_by_process': summary_by_process,
+        'summary_by_status_json': mark_safe(json.dumps(summary_by_status, ensure_ascii=False)),
+        'summary_by_process_json': mark_safe(json.dumps(list(summary_by_process), ensure_ascii=False)),
     }
     
     return render(request, 'audiencias/reportes.html', context)
@@ -180,9 +198,24 @@ def audiencia_list(request):
         audiencias = audiencias.filter(estado=estado)
 
     audiencias = audiencias.order_by('-fecha_hora')
+    
+    # Convert to JSON for JS
+    audiencias_json = []
+    for a in audiencias:
+        audiencias_json.append({
+            'id': a.id,
+            'nurej': a.nurej,
+            'demandante': a.demandante,
+            'demandado': a.demandado,
+            'estado': a.estado,
+            'fecha_hora': a.fecha_hora.strftime('%Y-%m-%d %H:%M'),
+            'sala': a.sala,
+            'detail_url': reverse('audiencia_detail', args=[a.id])
+        })
 
     context = {
         'audiencias': audiencias,
+        'audiencias_json': mark_safe(json.dumps(audiencias_json, ensure_ascii=False)),
         'query': query,
         'estado_actual': estado,
         'estados': Audiencia.ESTADOS,

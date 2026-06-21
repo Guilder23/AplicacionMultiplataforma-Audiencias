@@ -6,8 +6,37 @@
 
 .reportes-stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 16px;
+}
+
+.reportes-stats-grid .stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+    padding: 16px;
+}
+
+.reportes-stats-grid .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 20px;
+}
+
+.reportes-stats-grid .stat-card:not(.highlight) .stat-icon {
+    background: rgba(74, 144, 226, 0.12);
+    color: #4A90E2;
+}
+
+.reportes-stats-grid .stat-card.highlight .stat-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
 }
 
 .report-card-title {
@@ -18,39 +47,33 @@
 
 .chart-container {
     margin-top: 20px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+}
+
+.pie-chart-wrapper {
+    flex: 1;
+    max-width: 250px;
+}
+
+.legend {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .legend-item {
     display: flex;
     align-items: center;
-    margin-bottom: 12px;
+    gap: 12px;
 }
 
 .legend-color {
     width: 14px;
     height: 14px;
-    border-radius: 6px;
-    margin-right: 12px;
-}
-
-.legend-color-0 {
-    background-color: #b0122b;
-}
-
-.legend-color-1 {
-    background-color: #4A90E2;
-}
-
-.legend-color-2 {
-    background-color: #FFA500;
-}
-
-.legend-color-3 {
-    background-color: #50C878;
-}
-
-.legend-color-4 {
-    background-color: #9B59B6;
+    border-radius: 50%;
 }
 
 .legend-item-label {
@@ -85,7 +108,6 @@
     font-size: 12px;
     text-align: center;
     width: 80px;
-    color: #6b7280;
 }
 
 .bar-value {
@@ -95,7 +117,6 @@
     transform: translateX(-50%);
     font-size: 14px;
     font-weight: 600;
-    color: #1A1A2E;
 }
 
 .report-empty {
@@ -124,6 +145,15 @@
 
 .bar-purple {
     background: #9B59B6;
+}
+
+@media (max-width: 768px) {
+    .chart-container {
+        flex-direction: column;
+    }
+    .pie-chart-wrapper {
+        max-width: 100%;
+    }
 }
 
 @media (min-width: 1100px) {

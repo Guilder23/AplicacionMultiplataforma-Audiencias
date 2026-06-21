@@ -34,7 +34,7 @@
             {% endfor %}
         </div>
 
-        <div class="desktop-only">
+        <div class="desktop-only" id="desktopAudienciasContainer">
             {% if audiencias %}
                 <div class="card audiencia-table-card">
                     <div class="audiencia-table-wrapper">
@@ -51,9 +51,9 @@
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="audienciaTableBody">
                                 {% for audiencia in audiencias %}
-                                <tr>
+                                <tr data-audiencia-id="{{ audiencia.id }}" class="audiencia-row">
                                     <td class="time-cell">{{ audiencia.fecha_hora|time:"H:i" }}</td>
                                     <td>{{ audiencia.fecha_hora|date:"d M Y" }}</td>
                                     <td>
@@ -77,7 +77,7 @@
                         </table>
                     </div>
                     <div class="audiencia-table-footer">
-                        Mostrando {{ audiencias|length }} audiencia{{ audiencias|length|pluralize }}
+                        Mostrando <span id="desktopCount">{{ audiencias|length }}</span> audiencia{{ audiencias|length|pluralize }}
                     </div>
                 </div>
             {% else %}
@@ -89,10 +89,10 @@
             {% endif %}
         </div>
 
-        <div class="mobile-only">
+        <div class="mobile-only" id="mobileAudienciasContainer">
             {% if audiencias %}
                 {% for audiencia in audiencias %}
-                    <div class="audiencia-card">
+                    <div class="audiencia-card" data-audiencia-id="{{ audiencia.id }}" class="audiencia-mobile-card">
                         <div class="audiencia-time">
                             <div class="time">{{ audiencia.fecha_hora|time:"H:i" }}</div>
                             <div class="date">{{ audiencia.fecha_hora|date:"d M" }}</div>
@@ -122,5 +122,8 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+const audienciasData = {{ audiencias_json }};
+</script>
 <script src="{% static 'js/audiencias/list.js' %}"></script>
 {% endblock %}

@@ -13,20 +13,32 @@
         <h1 class="page-title">Reportes y Estadísticas</h1>
         
         <div class="reportes-stats-grid">
-            <div class="stat-card">
+            <div class="stat-card highlight">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
                 <div class="stat-value">{{ summary_by_status.Total }}</div>
-                <div class="stat-label">Total</div>
+                <div class="stat-label">Total audiencias</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value stat-blue">{{ summary_by_status.Programada }}</div>
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-value">{{ summary_by_status.Programada }}</div>
                 <div class="stat-label">Programadas</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value stat-green">{{ summary_by_status.Concluida }}</div>
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-value">{{ summary_by_status.Concluida }}</div>
                 <div class="stat-label">Concluidas</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value stat-yellow">{{ summary_by_status.Suspendida }}</div>
+                <div class="stat-icon">
+                    <i class="fas fa-pause-circle"></i>
+                </div>
+                <div class="stat-value">{{ summary_by_status.Suspendida }}</div>
                 <div class="stat-label">Suspendidas</div>
             </div>
         </div>
@@ -36,10 +48,13 @@
             <h3 class="report-card-title">Por tipo de proceso</h3>
             {% if summary_by_process %}
                 <div class="chart-container">
-                    <div class="legend">
+                    <div class="pie-chart-wrapper">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                    <div class="legend" id="pieChartLegend">
                         {% for item in summary_by_process %}
                         <div class="legend-item">
-                            <div class="legend-color legend-color-{{ forloop.counter0 }}"></div>
+                            <div class="legend-color"></div>
                             <span class="legend-item-label">{{ item.tipo_proceso }}</span>
                             <span class="legend-item-count">{{ item.count }}</span>
                         </div>
@@ -54,24 +69,9 @@
         </div>
         
         <div class="card">
-            <h3 class="report-card-title">Por estado</h3>
-            <div class="bar-chart">
-                <div class="bar bar-blue" style="height: {% widthratio summary_by_status.Programada summary_by_status.Total 180 %}px;">
-                    <div class="bar-value">{{ summary_by_status.Programada }}</div>
-                    <div class="bar-label">Programadas</div>
-                </div>
-                <div class="bar bar-green" style="height: {% widthratio summary_by_status.Concluida summary_by_status.Total 180 %}px;">
-                    <div class="bar-value">{{ summary_by_status.Concluida }}</div>
-                    <div class="bar-label">Concluidas</div>
-                </div>
-                <div class="bar bar-yellow" style="height: {% widthratio summary_by_status.Suspendida summary_by_status.Total 180 %}px;">
-                    <div class="bar-value">{{ summary_by_status.Suspendida }}</div>
-                    <div class="bar-label">Suspendidas</div>
-                </div>
-                <div class="bar bar-purple" style="height: {% widthratio summary_by_status.Reprogramada summary_by_status.Total 180 %}px;">
-                    <div class="bar-value">{{ summary_by_status.Reprogramada }}</div>
-                    <div class="bar-label">Reprogramadas</div>
-                </div>
+            <h3 class="report-card-title">Estados de audiencias</h3>
+            <div class="chart-container">
+                <canvas id="barChart"></canvas>
             </div>
         </div>
         </div>
@@ -80,5 +80,10 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const summaryByProcess = {{ summary_by_process_json }};
+const summaryByStatus = {{ summary_by_status_json }};
+</script>
 <script src="{% static 'js/audiencias/reportes.js' %}"></script>
 {% endblock %}
