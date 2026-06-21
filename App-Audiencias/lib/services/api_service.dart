@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../models/anuncio.dart';
 import '../models/audiencia.dart';
 
 class ApiService {
@@ -104,6 +105,27 @@ class ApiService {
         'message': 'Error de conexión: $e'
       };
     }
+  }
+
+  Future<List<Anuncio>> getAnuncios() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/anuncios/'),
+        headers: _headers(includeJsonContentType: false),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return (data['anuncios'] as List)
+              .map((item) => Anuncio.fromMap(item as Map<String, dynamic>))
+              .toList();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching anuncios: $e');
+    }
+    return [];
   }
 
   Future<List<Audiencia>> getAudiencias() async {

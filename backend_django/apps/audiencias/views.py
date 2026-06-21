@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
 from django.core import signing
 from django.utils.safestring import mark_safe
-from .models import Audiencia
+from .models import Audiencia, Anuncio
 from .forms import AudienciaForm, UserRegistrationForm
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -85,11 +85,18 @@ def _serialize_audiencia(audiencia, include_historial=False):
     return data
 
 
+def is_admin(user):
+    return user.is_superuser
+
+
 @login_required
 def dashboard(request):
     now = timezone.now()
     # Solo las audiencias del usuario actual
     audiencias = Audiencia.objects.filter(usuario=request.user)
+    anuncios_queryset = Anuncio.objects.filter(activo=True).order_by('-fecha_publicacion')
+    anuncios_preview = anuncios_queryset[:3]
+    ultima_anuncio = anuncios_queryset.first()
 
     summary = {
         'total': audiencias.count(),
@@ -121,10 +128,80 @@ def dashboard(request):
     context = {
         'summary': summary,
         'proximas': proximas,
+        'anuncios_preview': anuncios_preview,
+        'ultima_anuncio': ultima_anuncio,
+        'anuncios_count': anuncios_queryset.count(),
+        'is_admin': request.user.is_superuser,
         'audiencias_json': mark_safe(json.dumps(audiencias_json, ensure_ascii=False))
     }
 
     return render(request, 'audiencias/dashboard.html', context)
+
+
+@login_required
+def notificaciones(request):
+    anuncios = Anuncio.objects.filter(activo=True).order_by('-fecha_publicacion')
+    context = {
+        'anuncios': anuncios,
+        'anuncios_count': anuncios.count(),
+        'is_admin': request.user.is_superuser,
+    }
+    return render(request, 'audiencias/notificaciones.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def anuncio_create(request):
+    if request.method == 'POST':
+        titulo = (request.POST.get('titulo') or '').strip()
+        mensaje = (request.POST.get('mensaje') or '').strip()
+        prioridad = request.POST.get('prioridad', 'normal')
+        activo = request.POST.get('activo') == 'on'
+
+        if titulo and mensaje:
+            Anuncio.objects.create(
+                titulo=titulo,
+                mensaje=mensaje,
+                prioridad=prioridad,
+                activo=activo,
+                publicado_por=request.user,
+            )
+            messages.success(request, 'Anuncio publicado correctamente')
+        else:
+            messages.error(request, 'Completa el título y el mensaje para publicar')
+
+    return redirect('dashboard')
+
+
+@login_required
+@user_passes_test(is_admin)
+def anuncio_edit(request, pk):
+    anuncio = get_object_or_404(Anuncio, pk=pk)
+    if request.method == 'POST':
+        titulo = (request.POST.get('titulo') or '').strip()
+        mensaje = (request.POST.get('mensaje') or '').strip()
+        prioridad = request.POST.get('prioridad', 'normal')
+        activo = request.POST.get('activo') == 'on'
+        if titulo and mensaje:
+            anuncio.titulo = titulo
+            anuncio.mensaje = mensaje
+            anuncio.prioridad = prioridad
+            anuncio.activo = activo
+            anuncio.save()
+            messages.success(request, 'Anuncio actualizado correctamente')
+        else:
+            messages.error(request, 'Completa el título y el mensaje para actualizar')
+    return redirect('notificaciones')
+
+
+@login_required
+@user_passes_test(is_admin)
+def anuncio_delete(request, pk):
+    anuncio = get_object_or_404(Anuncio, pk=pk)
+    if request.method == 'POST':
+        anuncio.delete()
+        messages.success(request, 'Anuncio eliminado correctamente')
+    return redirect('notificaciones')
 
 
 @login_required
@@ -411,6 +488,62 @@ def api_logout(request):
     if request.method == 'POST':
         auth_logout(request)
         return JsonResponse({'success': True, 'message': 'Cierre de sesión exitoso'})
+    return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+
+
+@csrf_exempt
+def api_anuncios(request):
+    user = _get_api_user(request)
+    if not user:
+        return JsonResponse({'success': False, 'message': 'No autorizado'}, status=401)
+
+    if request.method == 'GET':
+        anuncios = Anuncio.objects.filter(activo=True).order_by('-fecha_publicacion')[:20]
+        return JsonResponse({
+            'success': True,
+            'anuncios': [
+                {
+                    'id': anuncio.id,
+                    'titulo': anuncio.titulo,
+                    'mensaje': anuncio.mensaje,
+                    'prioridad': anuncio.prioridad,
+                    'fecha_publicacion': anuncio.fecha_publicacion.isoformat(),
+                    'publicado_por': anuncio.publicado_por.username if anuncio.publicado_por else None,
+                }
+                for anuncio in anuncios
+            ]
+        })
+
+    elif request.method == 'POST' and user.is_superuser:
+        data = _parse_json_body(request)
+        if data is None:
+            return JsonResponse({'success': False, 'message': 'JSON inválido'}, status=400)
+
+        titulo = (data.get('titulo') or '').strip()
+        mensaje = (data.get('mensaje') or '').strip()
+        if not titulo or not mensaje:
+            return JsonResponse({'success': False, 'message': 'Título y mensaje requeridos'}, status=400)
+
+        anuncio = Anuncio.objects.create(
+            titulo=titulo,
+            mensaje=mensaje,
+            prioridad=data.get('prioridad', 'normal'),
+            activo=data.get('activo', True),
+            publicado_por=user,
+        )
+        return JsonResponse({
+            'success': True,
+            'message': 'Anuncio creado correctamente',
+            'anuncio': {
+                'id': anuncio.id,
+                'titulo': anuncio.titulo,
+                'mensaje': anuncio.mensaje,
+                'prioridad': anuncio.prioridad,
+                'fecha_publicacion': anuncio.fecha_publicacion.isoformat(),
+                'publicado_por': anuncio.publicado_por.username if anuncio.publicado_por else None,
+            }
+        }, status=201)
+
     return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
 
 

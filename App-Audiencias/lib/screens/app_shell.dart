@@ -1,10 +1,12 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../core/theme/app_theme.dart';
 import '../models/audiencia.dart';
+import '../providers/anuncio_provider.dart';
 import '../providers/audiencia_provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/ui_components.dart';
@@ -30,6 +32,7 @@ class _AppShellState extends State<AppShell> {
         return;
       }
       context.read<AudienciaProvider>().loadAudiencias();
+      context.read<AnuncioProvider>().loadAnuncios();
     });
   }
 
@@ -40,6 +43,7 @@ class _AppShellState extends State<AppShell> {
         onCreate: _openCreate,
         onNavigate: _changeIndex,
         onOpenAudiencia: _openDetail,
+        onOpenNotifications: _openNotifications,
       ),
       AudienciasScreen(onCreate: _openCreate, onOpenAudiencia: _openDetail),
       CalendarioScreen(onOpenAudiencia: _openDetail),
@@ -95,6 +99,12 @@ class _AppShellState extends State<AppShell> {
       ),
     );
   }
+
+  Future<void> _openNotifications() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+    );
+  }
 }
 
 class DashboardScreen extends StatelessWidget {
@@ -103,11 +113,13 @@ class DashboardScreen extends StatelessWidget {
     required this.onCreate,
     required this.onNavigate,
     required this.onOpenAudiencia,
+    required this.onOpenNotifications,
   });
 
   final VoidCallback onCreate;
   final ValueChanged<int> onNavigate;
   final ValueChanged<Audiencia> onOpenAudiencia;
+  final VoidCallback onOpenNotifications;
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +127,9 @@ class DashboardScreen extends StatelessWidget {
       builder: (context, provider, authProvider, _) {
         final summary = provider.statusSummary;
         final upcoming = provider.upcomingAudiencias.take(3).toList();
+        final anuncioProvider = context.watch<AnuncioProvider>();
+        final anuncios = anuncioProvider.anuncios;
+        final latestAnuncio = anuncios.isNotEmpty ? anuncios.first : null;
 
         return CustomScrollView(
           slivers: [
@@ -165,36 +180,41 @@ class DashboardScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                const Icon(
-                                  Icons.notifications_none_rounded,
-                                  color: Colors.white,
-                                  size: 28,
-                                ),
-                                Positioned(
-                                  right: -2,
-                                  top: -2,
-                                  child: Container(
-                                    width: 16,
-                                    height: 16,
-                                    alignment: Alignment.center,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Text(
-                                      '2',
-                                      style: TextStyle(
-                                        color: AppColors.primary,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w700,
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              onPressed: onOpenNotifications,
+                              icon: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  const Icon(
+                                    Icons.notifications_none_rounded,
+                                    color: Colors.white,
+                                    size: 28,
+                                  ),
+                                  if (anuncios.isNotEmpty)
+                                    Positioned(
+                                      right: -2,
+                                      top: -2,
+                                      child: Container(
+                                        width: 16,
+                                        height: 16,
+                                        alignment: Alignment.center,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Text(
+                                          '${anuncios.length}',
+                                          style: const TextStyle(
+                                            color: AppColors.primary,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -251,6 +271,61 @@ class DashboardScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  _SectionHeader(
+                    title: 'Última Notificación',
+                    actionLabel: 'Ver todas',
+                    onTap: onOpenNotifications,
+                  ),
+                  const SizedBox(height: 12),
+                  if (latestAnuncio == null)
+                    const _EmptyState(
+                      title: 'No hay notificaciones',
+                      subtitle: 'El administrador aun no publico mensajes.',
+                    )
+                  else
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    latestAnuncio.titulo,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  latestAnuncio.prioridad,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.mutedText,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              latestAnuncio.mensaje,
+                              style: const TextStyle(height: 1.4),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Publicado ${DateFormat('dd/MM/yyyy HH:mm').format(latestAnuncio.fechaPublicacion)}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.mutedText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 24),
                   _SectionHeader(
                     title: 'Proximas Audiencias',
@@ -849,6 +924,82 @@ class EstadisticasScreen extends StatelessWidget {
   }
 }
 
+class NotificationsScreen extends StatelessWidget {
+  const NotificationsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Notificaciones'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
+      body: Consumer<AnuncioProvider>(
+        builder: (context, anuncioProvider, _) {
+          final anuncios = anuncioProvider.anuncios;
+          if (anuncios.isEmpty) {
+            return const Center(
+              child: _EmptyState(
+                title: 'No hay notificaciones',
+                subtitle: 'El administrador aun no publico mensajes.',
+              ),
+            );
+          }
+
+          return ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: anuncios.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final anuncio = anuncios[index];
+              return Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              anuncio.titulo,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            anuncio.prioridad,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.mutedText,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(anuncio.mensaje, style: const TextStyle(height: 1.4)),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Publicado ${DateFormat('dd/MM/yyyy HH:mm').format(anuncio.fechaPublicacion)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.mutedText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key, required this.onCreate});
 
@@ -862,6 +1013,7 @@ class MoreScreen extends StatelessWidget {
       ('Control de estados', Icons.rule_folder_rounded),
       ('Sincronizacion con API', Icons.cloud_sync_rounded),
     ];
+    final anuncios = context.watch<AnuncioProvider>().anuncios;
 
     return SafeArea(
       child: Padding(
@@ -901,6 +1053,44 @@ class MoreScreen extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 20),
+            if (anuncios.isNotEmpty)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Últimos anuncios',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ...anuncios.take(3).map(
+                        (anuncio) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                anuncio.titulo,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(anuncio.mensaje),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             const SizedBox(height: 20),
             ...items.map(
               (item) => Padding(

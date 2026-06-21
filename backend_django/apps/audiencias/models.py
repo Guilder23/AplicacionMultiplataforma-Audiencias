@@ -4,6 +4,46 @@ from django.contrib.auth.models import User
 import json
 
 
+class Anuncio(models.Model):
+    PRIORIDADES = [
+        ('normal', 'Normal'),
+        ('importante', 'Importante'),
+        ('urgente', 'Urgente'),
+    ]
+
+    titulo = models.CharField(max_length=200, verbose_name='Título')
+    mensaje = models.TextField(verbose_name='Mensaje')
+    prioridad = models.CharField(
+        max_length=20,
+        choices=PRIORIDADES,
+        default='normal',
+        verbose_name='Prioridad'
+    )
+    activo = models.BooleanField(default=True, verbose_name='Activo')
+    publicado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='anuncios_publicados',
+        verbose_name='Publicado por'
+    )
+    fecha_publicacion = models.DateTimeField(
+        default=timezone.now,
+        verbose_name='Fecha de publicación'
+    )
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')
+    fecha_actualizacion = models.DateTimeField(auto_now=True, verbose_name='Fecha de actualización')
+
+    class Meta:
+        verbose_name = 'Anuncio'
+        verbose_name_plural = 'Anuncios'
+        ordering = ['-fecha_publicacion']
+
+    def __str__(self):
+        return self.titulo
+
+
 class Audiencia(models.Model):
     ESTADOS = [
         ('Programada', 'Programada'),

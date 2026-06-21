@@ -1,5 +1,13 @@
 from django.contrib import admin
-from .models import Audiencia
+from .models import Audiencia, Anuncio
+
+
+@admin.register(Anuncio)
+class AnuncioAdmin(admin.ModelAdmin):
+    list_display = ['titulo', 'prioridad', 'activo', 'publicado_por', 'fecha_publicacion']
+    list_filter = ['activo', 'prioridad', 'fecha_publicacion']
+    search_fields = ['titulo', 'mensaje']
+    readonly_fields = ['fecha_creacion', 'fecha_actualizacion']
 
 
 @admin.register(Audiencia)

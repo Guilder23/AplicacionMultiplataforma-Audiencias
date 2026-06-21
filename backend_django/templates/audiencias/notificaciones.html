@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notificaciones - Sistema de Audiencias{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/audiencias/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <div class="container dashboard-page">
+        <section class="card dashboard-section-card">
+            <div class="section-header">
+                <h2 class="section-title">Todas las notificaciones</h2>
+                {% if is_admin %}
+                <a href="{% url 'dashboard' %}" class="section-action">Nueva publicación</a>
+                {% endif %}
+            </div>
+
+            {% if is_admin %}
+            <div class="announcement-management-list">
+                {% for anuncio in anuncios %}
+                <div class="notification-item priority-{{ anuncio.prioridad }}">
+                    <div class="notification-meta">
+                        <span class="notification-title">{{ anuncio.titulo }}</span>
+                        <span class="notification-date">{{ anuncio.fecha_publicacion|date:'d M Y H:i' }}</span>
+                    </div>
+                    <p>{{ anuncio.mensaje }}</p>
+                    <form method="post" action="{% url 'anuncio_edit' anuncio.pk %}" class="announcement-form inline-edit-form">
+                        {% csrf_token %}
+                        <input type="text" name="titulo" value="{{ anuncio.titulo }}" maxlength="200" required>
+                        <textarea name="mensaje" rows="3" required>{{ anuncio.mensaje }}</textarea>
+                        <div class="announcement-form-actions">
+                            <select name="prioridad">
+                                <option value="normal" {% if anuncio.prioridad == 'normal' %}selected{% endif %}>Normal</option>
+                                <option value="importante" {% if anuncio.prioridad == 'importante' %}selected{% endif %}>Importante</option>
+                                <option value="urgente" {% if anuncio.prioridad == 'urgente' %}selected{% endif %}>Urgente</option>
+                            </select>
+                            <label>
+                                <input type="checkbox" name="activo" {% if anuncio.activo %}checked{% endif %}>
+                                Publicado
+                            </label>
+                            <button type="submit" class="btn btn-secondary">Guardar</button>
+                        </div>
+                    </form>
+                    <form method="post" action="{% url 'anuncio_delete' anuncio.pk %}" style="margin-top: 10px;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </form>
+                </div>
+                {% empty %}
+                <div class="empty-state mini-empty-state">
+                    <i class="fas fa-bell-slash"></i>
+                    <h3>No hay notificaciones</h3>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            {% if anuncios %}
+            <div class="notifications-list">
+                {% for anuncio in anuncios %}
+                <div class="notification-item priority-{{ anuncio.prioridad }}">
+                    <div class="notification-meta">
+                        <span class="notification-title">{{ anuncio.titulo }}</span>
+                        <span class="notification-date">{{ anuncio.fecha_publicacion|date:'d M Y H:i' }}</span>
+                    </div>
+                    <p>{{ anuncio.mensaje }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state mini-empty-state">
+                <i class="fas fa-bell-slash"></i>
+                <h3>No hay notificaciones</h3>
+            </div>
+            {% endif %}
+            {% endif %}
+        </section>
+    </div>
+</main>
+{% endblock %}

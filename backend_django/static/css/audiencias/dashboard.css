@@ -99,6 +99,48 @@
     grid-template-columns: repeat(2, 1fr);
 }
 
+.announcement-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.announcement-form input,
+.announcement-form textarea,
+.announcement-form select {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font: inherit;
+    color: #111827;
+}
+
+.announcement-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.announcement-form-actions label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #4b5563;
+}
+
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mini-empty-state {
+    padding: 20px 0;
+}
+
 @media (min-width: 1100px) {
     .dashboard-desktop-grid {
         display: grid;

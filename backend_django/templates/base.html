@@ -40,6 +40,10 @@
                     <i class="fas fa-chart-column"></i>
                     <span>Reportes</span>
                 </a>
+                <a href="{% url 'notificaciones' %}" class="sidebar-link {% if request.resolver_match.url_name == 'notificaciones' %}active{% endif %}">
+                    <i class="fas fa-bell"></i>
+                    <span>Notificaciones</span>
+                </a>
                 {% if user.is_superuser %}
                 <a href="{% url 'user_list' %}" class="sidebar-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-users"></i>
@@ -72,9 +76,44 @@
             </div>
         </div>
         <div class="header-right">
-            <div class="notifications">
+            <div class="notifications" id="notificationsToggle">
                 <i class="fas fa-bell"></i>
-                <span class="badge">2</span>
+                <span class="badge">{{ anuncios_count|default:0 }}</span>
+            </div>
+            <div class="notifications-panel" id="notificationsPanel">
+                <div class="notifications-panel-header">
+                    <h3>Notificaciones</h3>
+                </div>
+                <div class="notifications-panel-body">
+                    {% if anuncios_preview %}
+                        {% for anuncio in anuncios_preview|slice:':3' %}
+                        <div class="notification-item priority-{{ anuncio.prioridad }}">
+                            <div class="notification-meta">
+                                <span class="notification-title">{{ anuncio.titulo }}</span>
+                                <span class="notification-date">{{ anuncio.fecha_publicacion|date:"d M H:i" }}</span>
+                            </div>
+                            <p>{{ anuncio.mensaje }}</p>
+                        </div>
+                        {% endfor %}
+                    {% elif anuncios %}
+                        {% for anuncio in anuncios|slice:':3' %}
+                        <div class="notification-item priority-{{ anuncio.prioridad }}">
+                            <div class="notification-meta">
+                                <span class="notification-title">{{ anuncio.titulo }}</span>
+                                <span class="notification-date">{{ anuncio.fecha_publicacion|date:"d M H:i" }}</span>
+                            </div>
+                            <p>{{ anuncio.mensaje }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="notification-empty">No hay notificaciones pendientes.</div>
+                    {% endif %}
+                </div>
+                {% if anuncios_count|default:0 > 3 %}
+                <div class="notifications-panel-footer">
+                    <a href="{% url 'notificaciones' %}" class="btn btn-secondary btn-block">Ver más</a>
+                </div>
+                {% endif %}
             </div>
             <div class="header-user-info">
                 <i class="fas fa-user-circle header-user-avatar"></i>
@@ -117,6 +156,10 @@
             <a href="{% url 'reportes' %}" class="nav-item {% if request.resolver_match.url_name == 'reportes' %}active{% endif %}">
                 <i class="fas fa-chart-bar"></i>
                 <span>Reportes</span>
+            </a>
+            <a href="{% url 'notificaciones' %}" class="nav-item {% if request.resolver_match.url_name == 'notificaciones' %}active{% endif %}">
+                <i class="fas fa-bell"></i>
+                <span>Notificaciones</span>
             </a>
             {% if user.is_superuser %}
             <a href="{% url 'user_list' %}" class="nav-item {% if 'user' in request.resolver_match.url_name %}active{% endif %}">

@@ -65,6 +65,52 @@
                     </div>
                 </div>
 
+                {% if is_admin %}
+                <section class="card dashboard-section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">Publicar Notificación</h2>
+                    </div>
+                    <form method="post" action="{% url 'anuncio_create' %}" class="announcement-form">
+                        {% csrf_token %}
+                        <input type="text" name="titulo" placeholder="Título del anuncio" maxlength="200" required>
+                        <textarea name="mensaje" rows="3" placeholder="Escribe el mensaje para todos los usuarios" required></textarea>
+                        <div class="announcement-form-actions">
+                            <select name="prioridad">
+                                <option value="normal">Normal</option>
+                                <option value="importante">Importante</option>
+                                <option value="urgente">Urgente</option>
+                            </select>
+                            <label>
+                                <input type="checkbox" name="activo" checked>
+                                Publicar ahora
+                            </label>
+                            <button type="submit" class="btn btn-primary">Publicar</button>
+                        </div>
+                    </form>
+                </section>
+                {% endif %}
+
+                <section class="card dashboard-section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">Última Notificación</h2>
+                        <a href="{% url 'notificaciones' %}" class="section-action">Ver todas</a>
+                    </div>
+                    {% if ultima_anuncio %}
+                        <div class="notification-item priority-{{ ultima_anuncio.prioridad }}">
+                            <div class="notification-meta">
+                                <span class="notification-title">{{ ultima_anuncio.titulo }}</span>
+                                <span class="notification-date">{{ ultima_anuncio.fecha_publicacion|date:"d M H:i" }}</span>
+                            </div>
+                            <p>{{ ultima_anuncio.mensaje }}</p>
+                        </div>
+                    {% else %}
+                        <div class="empty-state mini-empty-state">
+                            <i class="fas fa-bell-slash"></i>
+                            <h3>No hay notificaciones</h3>
+                        </div>
+                    {% endif %}
+                </section>
+
                 <section class="card dashboard-section-card" id="proximasSection">
                     <div class="section-header">
                         <h2 class="section-title">Próximas Audiencias</h2>
@@ -183,6 +229,48 @@
                     <div id="mobileSearchResultsContainer"></div>
                 </section>
             </div>
+
+            {% if is_admin %}
+            <section class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Publicar Notificación</h2>
+                </div>
+                <form method="post" action="{% url 'anuncio_create' %}" class="announcement-form">
+                    {% csrf_token %}
+                    <input type="text" name="titulo" placeholder="Título del anuncio" maxlength="200" required>
+                    <textarea name="mensaje" rows="3" placeholder="Escribe el mensaje para todos los usuarios" required></textarea>
+                    <div class="announcement-form-actions">
+                        <select name="prioridad">
+                            <option value="normal">Normal</option>
+                            <option value="importante">Importante</option>
+                            <option value="urgente">Urgente</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Publicar</button>
+                    </div>
+                </form>
+            </section>
+            {% endif %}
+
+            <section class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Última Notificación</h2>
+                    <a href="{% url 'notificaciones' %}" class="section-action">Ver todas</a>
+                </div>
+                {% if ultima_anuncio %}
+                    <div class="notification-item priority-{{ ultima_anuncio.prioridad }}">
+                        <div class="notification-meta">
+                            <span class="notification-title">{{ ultima_anuncio.titulo }}</span>
+                            <span class="notification-date">{{ ultima_anuncio.fecha_publicacion|date:"d M H:i" }}</span>
+                        </div>
+                        <p>{{ ultima_anuncio.mensaje }}</p>
+                    </div>
+                {% else %}
+                    <div class="empty-state mini-empty-state">
+                        <i class="fas fa-bell-slash"></i>
+                        <h3>No hay notificaciones</h3>
+                    </div>
+                {% endif %}
+            </section>
 
             <section class="section" id="mobileProximasSection">
                 <div class="section-header">

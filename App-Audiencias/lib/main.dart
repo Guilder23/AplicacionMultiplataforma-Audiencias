@@ -3,15 +3,19 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 
 import 'core/theme/app_theme.dart';
+import 'providers/anuncio_provider.dart';
 import 'providers/audiencia_provider.dart';
 import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/app_shell.dart';
 import 'services/api_service.dart';
+import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('es');
+  await NotificationService.instance.initialize();
+  await NotificationService.instance.scheduleDailyReminders();
   runApp(const AudienciasApp());
 }
 
@@ -20,11 +24,15 @@ class AudienciasApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final apiService = ApiService();
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(
-          create: (_) => AudienciaProvider(ApiService()),
+          create: (_) => AudienciaProvider(apiService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AnuncioProvider(apiService),
         ),
       ],
       child: Consumer<AuthProvider>(
@@ -33,7 +41,10 @@ class AudienciasApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             title: 'Sistema de Audiencias',
             theme: AppTheme.light,
-            home: authProvider.isAuthenticated ? const AppShell() : const LoginScreen(),
+            home:
+                authProvider.isAuthenticated
+                    ? const AppShell()
+                    : const LoginScreen(),
           );
         },
       ),

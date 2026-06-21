@@ -11,6 +11,10 @@ urlpatterns = [
     path('audiencias/<int:pk>/eliminar/', views.audiencia_delete, name='audiencia_delete'),
     path('audiencias/<int:pk>/estado/', views.audiencia_change_status, name='audiencia_change_status'),
     
+    path('anuncios/', views.notificaciones, name='notificaciones'),
+    path('anuncios/publicar/', views.anuncio_create, name='anuncio_create'),
+    path('anuncios/<int:pk>/editar/', views.anuncio_edit, name='anuncio_edit'),
+    path('anuncios/<int:pk>/eliminar/', views.anuncio_delete, name='anuncio_delete'),
     path('calendario/', views.calendario, name='calendario'),
     path('reportes/', views.reportes, name='reportes'),
     
@@ -24,6 +28,7 @@ urlpatterns = [
     
     path('api/login/', views.api_login, name='api_login'),
     path('api/logout/', views.api_logout, name='api_logout'),
+    path('api/anuncios/', views.api_anuncios, name='api_anuncios'),
     path('api/audiencias/', views.api_audiencias, name='api_audiencias'),
     path('api/audiencias/<int:pk>/', views.api_audiencias, name='api_audiencias_detail'),
 ]
