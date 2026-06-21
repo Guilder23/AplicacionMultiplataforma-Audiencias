@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Usuarios - Sistema de Audiencias{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <div class="container">
+        <div class="list-controls">
+            <h1 class="page-title" style="text-align: left;">Usuarios</h1>
+            <a href="{% url 'user_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Usuario
+            </a>
+        </div>
+
+        {% if users %}
+            <div class="user-list">
+                {% for user in users %}
+                    <div class="user-card">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-info">
+                            <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+                            <p>@{{ user.username }}</p>
+                            <p class="user-email">{{ user.email }}</p>
+                        </div>
+                        <div class="user-badges">
+                            {% if user.is_superuser %}
+                                <span class="badge badge-admin">Admin</span>
+                            {% endif %}
+                            {% if user.is_staff %}
+                                <span class="badge badge-staff">Staff</span>
+                            {% endif %}
+                        </div>
+                        <div class="user-actions">
+                            <a href="{% url 'user_edit' user.pk %}" class="btn-icon-small">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'user_delete' user.pk %}" class="btn-icon-small btn-danger">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <h3>No hay usuarios registrados</h3>
+                <p>Crea un nuevo usuario para empezar.</p>
+            </div>
+        {% endif %}
+    </div>
+</main>
+{% endblock %}
