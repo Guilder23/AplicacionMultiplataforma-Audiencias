@@ -4,8 +4,10 @@ import 'package:provider/provider.dart';
 
 import 'core/theme/app_theme.dart';
 import 'providers/audiencia_provider.dart';
-import 'screens/splash_screen.dart';
-import 'services/local_storage_service.dart';
+import 'providers/auth_provider.dart';
+import 'screens/login_screen.dart';
+import 'screens/app_shell.dart';
+import 'services/api_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,15 +20,22 @@ class AudienciasApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create:
-          (_) =>
-              AudienciaProvider(LocalStorageService.instance)..loadAudiencias(),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Sistema de Audiencias',
-        theme: AppTheme.light,
-        home: const SplashScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(
+          create: (_) => AudienciaProvider(ApiService())..loadAudiencias(),
+        ),
+      ],
+      child: Consumer<AuthProvider>(
+        builder: (context, authProvider, _) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'Sistema de Audiencias',
+            theme: AppTheme.light,
+            home: authProvider.isAuthenticated ? const AppShell() : const LoginScreen(),
+          );
+        },
       ),
     );
   }

@@ -236,24 +236,96 @@ def api_login(request):
 
 
 @csrf_exempt
-@login_required
-def api_audiencias_list(request):
-    audiencias = Audiencia.objects.all().order_by('-fecha_hora')
-    data = []
-    for a in audiencias:
-        data.append({
-            'id': a.id,
-            'nurej': a.nurej,
-            'demandante': a.demandante,
-            'demandado': a.demandado,
-            'fecha_hora': a.fecha_hora.isoformat(),
-            'tipo_proceso': a.tipo_proceso,
-            'tipo_audiencia': a.tipo_audiencia,
-            'sala': a.sala,
-            'juez': a.juez,
-            'estado': a.estado,
-            'observaciones': a.observaciones,
-            'motivo_suspension': a.motivo_suspension,
-            'historial': a.get_historial(),
+def api_audiencias(request, pk=None):
+    if request.method == 'GET':
+        if pk:
+            # Obtener una audiencia específica
+            audiencia = get_object_or_404(Audiencia, pk=pk)
+            data = {
+                'id': audiencia.id,
+                'nurej': audiencia.nurej,
+                'demandante': audiencia.demandante,
+                'demandado': audiencia.demandado,
+                'fecha_hora': audiencia.fecha_hora.isoformat(),
+                'tipo_proceso': audiencia.tipo_proceso,
+                'tipo_audiencia': audiencia.tipo_audiencia,
+                'sala': audiencia.sala,
+                'juez': audiencia.juez,
+                'estado': audiencia.estado,
+                'observaciones': audiencia.observaciones,
+                'motivo_suspension': audiencia.motivo_suspension,
+                'historial': audiencia.get_historial(),
+            }
+            return JsonResponse({'success': True, 'audiencia': data})
+        else:
+            # Obtener todas las audiencias
+            audiencias = Audiencia.objects.all().order_by('-fecha_hora')
+            data = []
+            for a in audiencias:
+                data.append({
+                    'id': a.id,
+                    'nurej': a.nurej,
+                    'demandante': a.demandante,
+                    'demandado': a.demandado,
+                    'fecha_hora': a.fecha_hora.isoformat(),
+                    'tipo_proceso': a.tipo_proceso,
+                    'tipo_audiencia': a.tipo_audiencia,
+                    'sala': a.sala,
+                    'juez': a.juez,
+                    'estado': a.estado,
+                    'observaciones': a.observaciones,
+                    'motivo_suspension': a.motivo_suspension,
+                })
+            return JsonResponse({'success': True, 'audiencias': data})
+    
+    elif request.method == 'POST':
+        # Crear nueva audiencia
+        data = json.loads(request.body)
+        form = AudienciaForm(data)
+        if form.is_valid():
+            audiencia = form.save(commit=False)
+            audiencia.add_to_historial(f'Audiencia registrada con estado {audiencia.estado}')
+            audiencia.save()
+            return JsonResponse({
+                'success': True,
+                'message': 'Audiencia creada correctamente',
+                'audiencia': {
+                    'id': audiencia.id,
+                    'nurej': audiencia.nurej,
+                }
+            }, status=201)
+        return JsonResponse({
+            'success': False,
+            'message': 'Error al crear la audiencia',
+            'errors': form.errors
+        }, status=400)
+    
+    elif request.method == 'PUT' and pk:
+        # Actualizar audiencia
+        audiencia = get_object_or_404(Audiencia, pk=pk)
+        data = json.loads(request.body)
+        form = AudienciaForm(data, instance=audiencia)
+        if form.is_valid():
+            audiencia = form.save(commit=False)
+            audiencia.add_to_historial('Se actualizó la información de la audiencia')
+            audiencia.save()
+            return JsonResponse({
+                'success': True,
+                'message': 'Audiencia actualizada correctamente'
+            })
+        return JsonResponse({
+            'success': False,
+            'message': 'Error al actualizar la audiencia',
+            'errors': form.errors
+        }, status=400)
+    
+    elif request.method == 'DELETE' and pk:
+        # Eliminar audiencia
+        audiencia = get_object_or_404(Audiencia, pk=pk)
+        audiencia.delete()
+        return JsonResponse({
+            'success': True,
+            'message': 'Audiencia eliminada correctamente'
         })
-    return JsonResponse({'success': True, 'audiencias': data})
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)

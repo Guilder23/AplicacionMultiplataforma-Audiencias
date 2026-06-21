@@ -2,12 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 import '../models/audiencia.dart';
-import '../services/local_storage_service.dart';
+import '../services/api_service.dart';
 
 class AudienciaProvider extends ChangeNotifier {
-  AudienciaProvider(this._storageService);
+  AudienciaProvider(this._apiService);
 
-  final LocalStorageService _storageService;
+  final ApiService _apiService;
 
   List<Audiencia> _audiencias = [];
   String _searchQuery = '';
@@ -23,7 +23,7 @@ class AudienciaProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _audiencias = await _storageService.getAudiencias();
+      _audiencias = await _apiService.getAudiencias();
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -98,36 +98,44 @@ class AudienciaProvider extends ChangeNotifier {
     return summary;
   }
 
-  Future<void> saveAudiencia(Audiencia audiencia) async {
+  Future<bool> saveAudiencia(Audiencia audiencia) async {
+    _isLoading = true;
+    notifyListeners();
+
+    bool success;
     if (audiencia.id == null) {
-      final created = audiencia.copyWith(
-        historial: [
-          ...audiencia.historial,
-          _historyEntry('Audiencia registrada con estado ${audiencia.estado}'),
-        ],
-      );
-      await _storageService.insertAudiencia(created);
+      success = await _apiService.createAudiencia(audiencia);
     } else {
-      final previous = _audiencias.firstWhere(
-        (item) => item.id == audiencia.id,
-      );
-      final updated = audiencia.copyWith(
-        historial: [
-          ...previous.historial,
-          _historyEntry('Se actualizo la informacion de la audiencia'),
-        ],
-      );
-      await _storageService.updateAudiencia(updated);
+      success = await _apiService.updateAudiencia(audiencia);
     }
-    await loadAudiencias();
+
+    if (success) {
+      await loadAudiencias();
+    } else {
+      _isLoading = false;
+      notifyListeners();
+    }
+
+    return success;
   }
 
-  Future<void> deleteAudiencia(int id) async {
-    await _storageService.deleteAudiencia(id);
-    await loadAudiencias();
+  Future<bool> deleteAudiencia(int id) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final success = await _apiService.deleteAudiencia(id);
+
+    if (success) {
+      await loadAudiencias();
+    } else {
+      _isLoading = false;
+      notifyListeners();
+    }
+
+    return success;
   }
 
-  Future<void> changeStatus(
+  Future<bool> changeStatus(
     Audiencia audiencia,
     String status, {
     String? motivoSuspension,
@@ -135,27 +143,25 @@ class AudienciaProvider extends ChangeNotifier {
     final updated = audiencia.copyWith(
       estado: status,
       motivoSuspension: status == 'Suspendida' ? motivoSuspension : null,
-      historial: [
-        ...audiencia.historial,
-        _historyEntry(
-          status == 'Suspendida'
-              ? 'Estado cambiado a Suspendida. Motivo: ${motivoSuspension ?? 'Sin detalle'}'
-              : 'Estado cambiado de ${audiencia.estado} a $status',
-        ),
-      ],
     );
 
-    await _storageService.updateAudiencia(updated);
-    await loadAudiencias();
+    _isLoading = true;
+    notifyListeners();
+
+    final success = await _apiService.updateAudiencia(updated);
+
+    if (success) {
+      await loadAudiencias();
+    } else {
+      _isLoading = false;
+      notifyListeners();
+    }
+
+    return success;
   }
 
   void updateSearchQuery(String value) {
     _searchQuery = value;
     notifyListeners();
-  }
-
-  String _historyEntry(String description) {
-    final timestamp = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
-    return '$timestamp - $description';
   }
 }

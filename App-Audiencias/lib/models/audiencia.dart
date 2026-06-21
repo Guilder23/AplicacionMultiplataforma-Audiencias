@@ -77,7 +77,6 @@ class Audiencia {
       'estado': estado,
       'observaciones': observaciones,
       'motivo_suspension': motivoSuspension,
-      'historial': jsonEncode(historial),
     };
   }
 
@@ -89,7 +88,7 @@ class Audiencia {
       demandado: map['demandado'] as String? ?? '',
       fechaHora:
           DateTime.tryParse(map['fecha_hora'] as String? ?? '') ??
-          DateTime.now(),
+              DateTime.now(),
       tipoProceso: map['tipo_proceso'] as String? ?? '',
       tipoAudiencia: map['tipo_audiencia'] as String? ?? '',
       sala: map['sala'] as String? ?? '',
@@ -106,6 +105,9 @@ class Audiencia {
       return const [];
     }
     try {
+      if (rawHistory is List) {
+        return rawHistory.map((item) => item.toString()).toList();
+      }
       final decoded = jsonDecode(rawHistory as String) as List<dynamic>;
       return decoded.map((item) => item.toString()).toList();
     } catch (_) {

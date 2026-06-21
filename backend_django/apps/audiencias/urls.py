@@ -20,5 +20,6 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     
     path('api/login/', views.api_login, name='api_login'),
-    path('api/audiencias/', views.api_audiencias_list, name='api_audiencias_list'),
+    path('api/audiencias/', views.api_audiencias, name='api_audiencias'),
+    path('api/audiencias/<int:pk>/', views.api_audiencias, name='api_audiencias_detail'),
 ]

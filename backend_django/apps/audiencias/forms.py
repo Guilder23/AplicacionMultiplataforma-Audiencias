@@ -68,12 +68,14 @@ class UserRegistrationForm(forms.ModelForm):
     password1 = forms.CharField(
         label='Contraseña',
         widget=forms.PasswordInput(attrs={'class': 'form-input', 'placeholder': 'Ingrese contraseña'}),
-        min_length=8
+        min_length=8,
+        required=False
     )
     password2 = forms.CharField(
         label='Confirmar Contraseña',
         widget=forms.PasswordInput(attrs={'class': 'form-input', 'placeholder': 'Confirmar contraseña'}),
-        min_length=8
+        min_length=8,
+        required=False
     )
 
     class Meta:
@@ -92,16 +94,42 @@ class UserRegistrationForm(forms.ModelForm):
             'email': 'Correo Electrónico',
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            # Estamos editando un usuario, las contraseñas son opcionales
+            self.fields['password1'].help_text = 'Dejar vacío para mantener la misma contraseña'
+            self.fields['password2'].help_text = 'Dejar vacío para mantener la misma contraseña'
+        else:
+            # Estamos creando un nuevo usuario, las contraseñas son obligatorias
+            self.fields['password1'].required = True
+            self.fields['password2'].required = True
+
     def clean_password2(self):
         password1 = self.cleaned_data.get('password1')
         password2 = self.cleaned_data.get('password2')
-        if password1 and password2 and password1 != password2:
-            raise forms.ValidationError('Las contraseñas no coinciden')
+        
+        # Si estamos editando y no se proporcionaron contraseñas, está bien
+        if self.instance and self.instance.pk:
+            if not password1 and not password2:
+                return password2
+        
+        # Si se proporcionó una, la otra también debe estar presente
+        if password1 or password2:
+            if password1 != password2:
+                raise forms.ValidationError('Las contraseñas no coinciden')
+            if len(password1) < 8:
+                raise forms.ValidationError('La contraseña debe tener al menos 8 caracteres')
+        
         return password2
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data['password1'])
+        password1 = self.cleaned_data.get('password1')
+        
+        if password1:
+            user.set_password(password1)
+        
         if commit:
             user.save()
         return user

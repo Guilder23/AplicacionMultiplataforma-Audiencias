@@ -6,9 +6,11 @@ import 'package:table_calendar/table_calendar.dart';
 import '../core/theme/app_theme.dart';
 import '../models/audiencia.dart';
 import '../providers/audiencia_provider.dart';
+import '../providers/auth_provider.dart';
 import '../widgets/ui_components.dart';
 import 'audiencia_detail_screen.dart';
 import 'audiencia_form_screen.dart';
+import 'login_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -844,10 +846,10 @@ class MoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = const [
-      ('Base local SQLite', Icons.sd_storage_rounded),
+      ('Base de datos PostgreSQL', Icons.sd_storage_rounded),
       ('Historial de cambios', Icons.history_rounded),
       ('Control de estados', Icons.rule_folder_rounded),
-      ('Uso sin internet', Icons.phone_android_rounded),
+      ('Sincronizacion con API', Icons.cloud_sync_rounded),
     ];
 
     return SafeArea(
@@ -882,7 +884,7 @@ class MoreScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Aplicacion local para funcionarias judiciales de familia, con enfoque en agenda, control administrativo y estadisticas.',
+                    'Aplicacion multiplataforma (Web + Mobile) para funcionarias judiciales de familia, con enfoque en agenda, control administrativo y estadisticas.',
                     style: TextStyle(color: Color(0xFFF7DEE2), height: 1.5),
                   ),
                 ],
@@ -907,11 +909,23 @@ class MoreScreen extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            CustomButton(
-              label: 'Registrar Nueva Audiencia',
-              onPressed: onCreate,
-              icon: Icons.add_rounded,
-              expanded: true,
+            Consumer<AuthProvider>(
+              builder: (context, authProvider, _) {
+                return CustomButton(
+                  label: 'Cerrar Sesion',
+                  onPressed: () async {
+                    await authProvider.logout();
+                    if (context.mounted) {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      );
+                    }
+                  },
+                  icon: Icons.logout_rounded,
+                  expanded: true,
+                  isSecondary: true,
+                );
+              },
             ),
           ],
         ),
