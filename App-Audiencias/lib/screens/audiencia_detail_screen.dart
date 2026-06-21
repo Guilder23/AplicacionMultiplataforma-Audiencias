@@ -386,9 +386,21 @@ class AudienciaDetailScreen extends StatelessWidget {
       return;
     }
 
-    await context.read<AudienciaProvider>().deleteAudiencia(audiencia.id!);
+    final success = await context.read<AudienciaProvider>().deleteAudiencia(
+      audiencia.id!,
+    );
 
     if (!context.mounted) {
+      return;
+    }
+
+    if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo eliminar la audiencia'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 
@@ -473,13 +485,23 @@ class AudienciaDetailScreen extends StatelessWidget {
       return;
     }
 
-    await context.read<AudienciaProvider>().changeStatus(
+    final success = await context.read<AudienciaProvider>().changeStatus(
       audiencia,
       selectedStatus,
       motivoSuspension: selectedStatus == 'Suspendida' ? selectedMotivo : null,
     );
 
     if (!context.mounted) {
+      return;
+    }
+
+    if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo actualizar el estado'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 

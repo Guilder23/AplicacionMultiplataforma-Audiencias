@@ -18,6 +18,13 @@ class AudienciaProvider extends ChangeNotifier {
 
   List<Audiencia> get audiencias => List.unmodifiable(_audiencias);
 
+  void clearAudiencias() {
+    _audiencias = [];
+    _searchQuery = '';
+    _isLoading = false;
+    notifyListeners();
+  }
+
   Future<void> loadAudiencias() async {
     _isLoading = true;
     notifyListeners();

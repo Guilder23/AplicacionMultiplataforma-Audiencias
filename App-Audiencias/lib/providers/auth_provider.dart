@@ -25,13 +25,15 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> _checkAuthStatus() async {
     final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
     final username = prefs.getString('username');
-    if (username != null) {
+    if (token != null && token.isNotEmpty && username != null) {
       _isAuthenticated = true;
       _username = username;
       _firstName = prefs.getString('firstName');
       _lastName = prefs.getString('lastName');
       _email = prefs.getString('email');
+      _apiService.setAuthToken(token);
       notifyListeners();
     }
   }
@@ -43,12 +45,18 @@ class AuthProvider with ChangeNotifier {
     try {
       final response = await _apiService.login(username, password);
       if (response['success'] == true) {
+        final token = response['token'] as String? ?? '';
+        if (token.isEmpty) {
+          return false;
+        }
+
         _isAuthenticated = true;
         _username = username;
         _firstName = response['user']['first_name'];
         _lastName = response['user']['last_name'];
         _email = response['user']['email'];
         final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
         await prefs.setString('username', username);
         await prefs.setString('firstName', _firstName ?? '');
         await prefs.setString('lastName', _lastName ?? '');
@@ -72,7 +80,9 @@ class AuthProvider with ChangeNotifier {
     _firstName = null;
     _lastName = null;
     _email = null;
+    _apiService.setAuthToken(null);
     final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
     await prefs.remove('username');
     await prefs.remove('firstName');
     await prefs.remove('lastName');

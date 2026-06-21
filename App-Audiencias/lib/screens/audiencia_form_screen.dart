@@ -400,9 +400,23 @@ class _AudienciaFormScreenState extends State<AudienciaFormScreen> {
         historial: widget.audiencia?.historial ?? const [],
       );
 
-      await context.read<AudienciaProvider>().saveAudiencia(model);
+      final success = await context.read<AudienciaProvider>().saveAudiencia(
+        model,
+      );
 
       if (!mounted) {
+        return;
+      }
+
+      if (!success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'No se pudo guardar la audiencia. Verifique su sesion y la conexion con el servidor.',
+            ),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
         return;
       }
 

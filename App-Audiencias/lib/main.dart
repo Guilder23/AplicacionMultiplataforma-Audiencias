@@ -24,7 +24,7 @@ class AudienciasApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(
-          create: (_) => AudienciaProvider(ApiService())..loadAudiencias(),
+          create: (_) => AudienciaProvider(ApiService()),
         ),
       ],
       child: Consumer<AuthProvider>(

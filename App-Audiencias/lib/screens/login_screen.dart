@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/app_theme.dart';
+import '../providers/audiencia_provider.dart';
 import '../providers/auth_provider.dart';
-import '../widgets/ui_components.dart';
 import 'app_shell.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -28,12 +28,15 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final audienciaProvider = context.read<AudienciaProvider>();
       final success = await authProvider.login(
         _usernameController.text.trim(),
         _passwordController.text,
       );
 
       if (success) {
+        if (!mounted) return;
+        await audienciaProvider.loadAudiencias();
         if (!mounted) return;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const AppShell()),
@@ -79,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   borderRadius: BorderRadius.circular(32),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -95,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
+                          color: AppColors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(24),
                         ),
                         child: Icon(

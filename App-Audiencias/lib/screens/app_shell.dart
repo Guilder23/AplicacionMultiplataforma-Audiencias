@@ -23,6 +23,17 @@ class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      context.read<AudienciaProvider>().loadAudiencias();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final pages = [
       DashboardScreen(
@@ -915,6 +926,9 @@ class MoreScreen extends StatelessWidget {
                   label: 'Cerrar Sesion',
                   onPressed: () async {
                     await authProvider.logout();
+                    if (context.mounted) {
+                      context.read<AudienciaProvider>().clearAudiencias();
+                    }
                     if (context.mounted) {
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (_) => const LoginScreen()),

@@ -5,11 +5,83 @@ from django.db.models import Count, Q
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
+from django.core import signing
 from .models import Audiencia
 from .forms import AudienciaForm, UserRegistrationForm
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+
+
+API_TOKEN_SALT = 'apps.audiencias.api'
+API_TOKEN_MAX_AGE = 60 * 60 * 24 * 7
+
+
+def _create_api_token(user):
+    return signing.dumps({'user_id': user.pk}, salt=API_TOKEN_SALT)
+
+
+def _get_api_user(request):
+    if request.user.is_authenticated:
+        return request.user
+
+    auth_header = request.headers.get('Authorization', '')
+    token = None
+
+    if auth_header.startswith('Bearer '):
+        token = auth_header[7:].strip()
+    else:
+        token = request.headers.get('X-Auth-Token')
+
+    if not token:
+        return None
+
+    try:
+        payload = signing.loads(
+            token,
+            salt=API_TOKEN_SALT,
+            max_age=API_TOKEN_MAX_AGE,
+        )
+    except (signing.BadSignature, signing.SignatureExpired):
+        return None
+
+    user_id = payload.get('user_id')
+    if not user_id:
+        return None
+
+    try:
+        return User.objects.get(pk=user_id, is_active=True)
+    except User.DoesNotExist:
+        return None
+
+
+def _parse_json_body(request):
+    try:
+        return json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return None
+
+
+def _serialize_audiencia(audiencia, include_historial=False):
+    data = {
+        'id': audiencia.id,
+        'nurej': audiencia.nurej,
+        'demandante': audiencia.demandante,
+        'demandado': audiencia.demandado,
+        'fecha_hora': audiencia.fecha_hora.isoformat(),
+        'tipo_proceso': audiencia.tipo_proceso,
+        'tipo_audiencia': audiencia.tipo_audiencia,
+        'sala': audiencia.sala,
+        'juez': audiencia.juez,
+        'estado': audiencia.estado,
+        'observaciones': audiencia.observaciones,
+        'motivo_suspension': audiencia.motivo_suspension,
+    }
+
+    if include_historial:
+        data['historial'] = audiencia.get_historial()
+
+    return data
 
 
 @login_required
@@ -266,16 +338,24 @@ def logout_view(request):
 @csrf_exempt
 def api_login(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
+        data = _parse_json_body(request)
+        if data is None:
+            return JsonResponse({
+                'success': False,
+                'message': 'JSON inválido'
+            }, status=400)
+
         username = data.get('username')
         password = data.get('password')
         
         user = authenticate(username=username, password=password)
         
         if user:
+            auth_login(request, user)
             return JsonResponse({
                 'success': True,
                 'message': 'Inicio de sesión exitoso',
+                'token': _create_api_token(user),
                 'user': {
                     'id': user.id,
                     'username': user.username,
@@ -303,67 +383,39 @@ def api_logout(request):
 
 @csrf_exempt
 def api_audiencias(request, pk=None):
+    user = _get_api_user(request)
+
+    if not user:
+        return JsonResponse({'success': False, 'message': 'No autorizado'}, status=401)
+
     if request.method == 'GET':
-        # Para la API, primero necesitamos autenticar al usuario
-        if not request.user.is_authenticated:
-            return JsonResponse({'success': False, 'message': 'No autorizado'}, status=401)
-            
         if pk:
-            audiencia = get_object_or_404(Audiencia, pk=pk, usuario=request.user)
-            data = {
-                'id': audiencia.id,
-                'nurej': audiencia.nurej,
-                'demandante': audiencia.demandante,
-                'demandado': audiencia.demandado,
-                'fecha_hora': audiencia.fecha_hora.isoformat(),
-                'tipo_proceso': audiencia.tipo_proceso,
-                'tipo_audiencia': audiencia.tipo_audiencia,
-                'sala': audiencia.sala,
-                'juez': audiencia.juez,
-                'estado': audiencia.estado,
-                'observaciones': audiencia.observaciones,
-                'motivo_suspension': audiencia.motivo_suspension,
-                'historial': audiencia.get_historial(),
-            }
+            audiencia = get_object_or_404(Audiencia, pk=pk, usuario=user)
+            data = _serialize_audiencia(audiencia, include_historial=True)
             return JsonResponse({'success': True, 'audiencia': data})
         else:
-            audiencias = Audiencia.objects.filter(usuario=request.user).order_by('-fecha_hora')
-            data = []
-            for a in audiencias:
-                data.append({
-                    'id': a.id,
-                    'nurej': a.nurej,
-                    'demandante': a.demandante,
-                    'demandado': a.demandado,
-                    'fecha_hora': a.fecha_hora.isoformat(),
-                    'tipo_proceso': a.tipo_proceso,
-                    'tipo_audiencia': a.tipo_audiencia,
-                    'sala': a.sala,
-                    'juez': a.juez,
-                    'estado': a.estado,
-                    'observaciones': a.observaciones,
-                    'motivo_suspension': a.motivo_suspension,
-                })
+            audiencias = Audiencia.objects.filter(usuario=user).order_by('-fecha_hora')
+            data = [_serialize_audiencia(a) for a in audiencias]
             return JsonResponse({'success': True, 'audiencias': data})
     
     elif request.method == 'POST':
-        if not request.user.is_authenticated:
-            return JsonResponse({'success': False, 'message': 'No autorizado'}, status=401)
-            
-        data = json.loads(request.body)
+        data = _parse_json_body(request)
+        if data is None:
+            return JsonResponse({
+                'success': False,
+                'message': 'JSON inválido'
+            }, status=400)
+
         form = AudienciaForm(data)
         if form.is_valid():
             audiencia = form.save(commit=False)
-            audiencia.usuario = request.user
+            audiencia.usuario = user
             audiencia.add_to_historial(f'Audiencia registrada con estado {audiencia.estado}')
             audiencia.save()
             return JsonResponse({
                 'success': True,
                 'message': 'Audiencia creada correctamente',
-                'audiencia': {
-                    'id': audiencia.id,
-                    'nurej': audiencia.nurej,
-                }
+                'audiencia': _serialize_audiencia(audiencia, include_historial=True)
             }, status=201)
         return JsonResponse({
             'success': False,
@@ -372,11 +424,14 @@ def api_audiencias(request, pk=None):
         }, status=400)
     
     elif request.method == 'PUT' and pk:
-        if not request.user.is_authenticated:
-            return JsonResponse({'success': False, 'message': 'No autorizado'}, status=401)
-            
-        audiencia = get_object_or_404(Audiencia, pk=pk, usuario=request.user)
-        data = json.loads(request.body)
+        audiencia = get_object_or_404(Audiencia, pk=pk, usuario=user)
+        data = _parse_json_body(request)
+        if data is None:
+            return JsonResponse({
+                'success': False,
+                'message': 'JSON inválido'
+            }, status=400)
+
         form = AudienciaForm(data, instance=audiencia)
         if form.is_valid():
             audiencia = form.save(commit=False)
@@ -384,7 +439,8 @@ def api_audiencias(request, pk=None):
             audiencia.save()
             return JsonResponse({
                 'success': True,
-                'message': 'Audiencia actualizada correctamente'
+                'message': 'Audiencia actualizada correctamente',
+                'audiencia': _serialize_audiencia(audiencia, include_historial=True)
             })
         return JsonResponse({
             'success': False,
@@ -393,10 +449,7 @@ def api_audiencias(request, pk=None):
         }, status=400)
     
     elif request.method == 'DELETE' and pk:
-        if not request.user.is_authenticated:
-            return JsonResponse({'success': False, 'message': 'No autorizado'}, status=401)
-            
-        audiencia = get_object_or_404(Audiencia, pk=pk, usuario=request.user)
+        audiencia = get_object_or_404(Audiencia, pk=pk, usuario=user)
         audiencia.delete()
         return JsonResponse({
             'success': True,
