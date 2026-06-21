@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Audiencias</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<div class="container">
+
+    <header>
+        <h1><i class="fa-solid fa-scale-balanced"></i> Sistema de Audiencias</h1>
+
+        <div class="actions">
+            <div class="search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="buscar" placeholder="Buscar audiencias...">
+            </div>
+            <button id="btnNueva">
+                <i class="fa-solid fa-plus"></i> Nueva Audiencia
+            </button>
+        </div>
+    </header>
+
+    <div class="stats">
+        <div class="card-stat">
+            <h3>Total</h3>
+            <span id="total">0</span>
+        </div>
+
+        <div class="card-stat">
+            <h3>Programadas</h3>
+            <span id="programadas">0</span>
+        </div>
+
+        <div class="card-stat">
+            <h3>Concluidas</h3>
+            <span id="concluidas">0</span>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>NUREJ</th>
+                    <th>Demandante</th>
+                    <th>Demandado</th>
+                    <th>Proceso</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody id="tablaAudiencias">
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mobile-list" id="mobileList"></div>
+
+</div>
+
+<div class="modal" id="modal">
+
+    <div class="modal-content">
+
+        <h2><i class="fa-solid fa-gavel"></i> Audiencia</h2>
+
+        <form id="formAudiencia">
+
+            <input type="hidden" id="id">
+
+            <input type="text" id="nurej" placeholder="NUREJ" required>
+
+            <input type="text" id="demandante" placeholder="Demandante" required>
+
+            <input type="text" id="demandado" placeholder="Demandado" required>
+
+            <input type="text" id="proceso" placeholder="Tipo de Proceso" required>
+
+            <input type="date" id="fecha" required>
+
+            <select id="estado">
+                <option>Programada</option>
+                <option>Concluida</option>
+                <option>Suspendida</option>
+            </select>
+
+            <div class="modal-buttons">
+                <button type="submit"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+                <button type="button" id="cerrar"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
