@@ -1,10 +1,15 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Audiencias - Sistema de Audiencias{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/audiencias/list.css' %}">
+{% endblock %}
+
 {% block content %}
 <main class="main-content">
-    <div class="container">
+    <div class="container audiencia-list-page">
         <h1 class="page-title">Audiencias</h1>
 
         <div class="list-controls">
@@ -12,8 +17,9 @@
                 <i class="fas fa-search"></i>
                 <input type="text" placeholder="Buscar por NUREJ, partes o fecha" id="searchInput" value="{{ query }}">
             </div>
-            <a href="{% url 'audiencia_create' %}" class="btn-icon">
+            <a href="{% url 'audiencia_create' %}" class="btn btn-primary audiencia-list-create">
                 <i class="fas fa-plus"></i>
+                Nueva Audiencia
             </a>
         </div>
 
@@ -28,45 +34,93 @@
             {% endfor %}
         </div>
 
-        {% if audiencias %}
-            {% for audiencia in audiencias %}
-                <div class="audiencia-card">
-                    <div class="audiencia-time">
-                        <div class="time">{{ audiencia.fecha_hora|time:"H:i" }}</div>
-                        <div class="date">{{ audiencia.fecha_hora|date:"d M" }}</div>
+        <div class="desktop-only">
+            {% if audiencias %}
+                <div class="card audiencia-table-card">
+                    <div class="audiencia-table-wrapper">
+                        <table class="audiencia-table">
+                            <thead>
+                                <tr>
+                                    <th>Hora</th>
+                                    <th>Fecha</th>
+                                    <th>Audiencia</th>
+                                    <th>Partes</th>
+                                    <th>NUREJ</th>
+                                    <th>Sala</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for audiencia in audiencias %}
+                                <tr>
+                                    <td class="time-cell">{{ audiencia.fecha_hora|time:"H:i" }}</td>
+                                    <td>{{ audiencia.fecha_hora|date:"d M Y" }}</td>
+                                    <td>
+                                        <strong>{{ audiencia.tipo_proceso }}</strong>
+                                        <span>{{ audiencia.tipo_audiencia }}</span>
+                                    </td>
+                                    <td>{{ audiencia.demandante }} c/ {{ audiencia.demandado }}</td>
+                                    <td>{{ audiencia.nurej }}</td>
+                                    <td>{{ audiencia.sala }}</td>
+                                    <td>
+                                        <span class="audiencia-status status-{{ audiencia.estado|lower|cut:' ' }}">
+                                            {{ audiencia.estado }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'audiencia_detail' audiencia.pk %}" class="table-action-link">Ver</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="audiencia-content">
-                        <div class="audiencia-title">{{ audiencia.tipo_proceso }}</div>
-                        <div class="audiencia-subtitle">NUREJ {{ audiencia.nurej }}</div>
-                        <div class="audiencia-parties">{{ audiencia.demandante }} c/ {{ audiencia.demandado }}</div>
-                        <div class="audiencia-room">{{ audiencia.sala }}</div>
+                    <div class="audiencia-table-footer">
+                        Mostrando {{ audiencias|length }} audiencia{{ audiencias|length|pluralize }}
                     </div>
-                    <div class="audiencia-status status-{{ audiencia.estado|lower|cut:' ' }}">
-                        {{ audiencia.estado }}
-                    </div>
-                    <a href="{% url 'audiencia_detail' audiencia.pk %}" class="audiencia-link"></a>
                 </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty-state">
-                <i class="fas fa-inbox"></i>
-                <h3>No se encontraron audiencias</h3>
-                <p>Prueba con otro criterio de búsqueda o registra una nueva.</p>
-            </div>
-        {% endif %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h3>No se encontraron audiencias</h3>
+                    <p>Prueba con otro criterio de búsqueda o registra una nueva.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mobile-only">
+            {% if audiencias %}
+                {% for audiencia in audiencias %}
+                    <div class="audiencia-card">
+                        <div class="audiencia-time">
+                            <div class="time">{{ audiencia.fecha_hora|time:"H:i" }}</div>
+                            <div class="date">{{ audiencia.fecha_hora|date:"d M" }}</div>
+                        </div>
+                        <div class="audiencia-content">
+                            <div class="audiencia-title">{{ audiencia.tipo_proceso }}</div>
+                            <div class="audiencia-subtitle">NUREJ {{ audiencia.nurej }}</div>
+                            <div class="audiencia-parties">{{ audiencia.demandante }} c/ {{ audiencia.demandado }}</div>
+                            <div class="audiencia-room">{{ audiencia.sala }}</div>
+                        </div>
+                        <div class="audiencia-status status-{{ audiencia.estado|lower|cut:' ' }}">
+                            {{ audiencia.estado }}
+                        </div>
+                        <a href="{% url 'audiencia_detail' audiencia.pk %}" class="audiencia-link"></a>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h3>No se encontraron audiencias</h3>
+                    <p>Prueba con otro criterio de búsqueda o registra una nueva.</p>
+                </div>
+            {% endif %}
+        </div>
     </div>
 </main>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-document.getElementById('searchInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        const query = this.value;
-        const currentUrl = new URL(window.location);
-        currentUrl.searchParams.set('q', query);
-        window.location.href = currentUrl.toString();
-    }
-});
-</script>
+<script src="{% static 'js/audiencias/list.js' %}"></script>
 {% endblock %}

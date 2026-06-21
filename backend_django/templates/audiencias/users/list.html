@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Usuarios - Sistema de Audiencias{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/audiencias/users/list.css' %}">
+{% endblock %}
 
 {% block content %}
 <main class="main-content">
@@ -52,4 +57,8 @@
         {% endif %}
     </div>
 </main>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/audiencias/users/list.js' %}"></script>
 {% endblock %}

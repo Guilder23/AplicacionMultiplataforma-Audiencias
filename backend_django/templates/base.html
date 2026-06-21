@@ -10,8 +10,55 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <div class="app-container">
+<body class="{% block body_class %}app-page{% endblock %}">
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+                <div class="sidebar-brand-copy">
+                    <h2>Sistema de Audiencias</h2>
+                    <p>Materia de Familia</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{% url 'dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-home"></i>
+                    <span>Inicio</span>
+                </a>
+                <a href="{% url 'audiencia_list' %}" class="sidebar-link {% if 'audiencia' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-gavel"></i>
+                    <span>Audiencias</span>
+                </a>
+                <a href="{% url 'calendario' %}" class="sidebar-link {% if request.resolver_match.url_name == 'calendario' %}active{% endif %}">
+                    <i class="fas fa-calendar-days"></i>
+                    <span>Calendario</span>
+                </a>
+                <a href="{% url 'reportes' %}" class="sidebar-link {% if request.resolver_match.url_name == 'reportes' %}active{% endif %}">
+                    <i class="fas fa-chart-column"></i>
+                    <span>Reportes</span>
+                </a>
+                {% if user.is_superuser %}
+                <a href="{% url 'user_list' %}" class="sidebar-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-users"></i>
+                    <span>Usuarios</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'logout' %}" class="sidebar-link">
+                    <i class="fas fa-right-from-bracket"></i>
+                    <span>Salir</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <span>Sistema web sincronizado con la misma base de datos.</span>
+            </div>
+        </aside>
+
+        <div class="app-stage">
+            <div class="app-container">
         {% block header %}
 <header class="header">
     <div class="header-content">
@@ -25,18 +72,31 @@
             </div>
         </div>
         <div class="header-right">
-            <div class="user-info">
-                <i class="fas fa-user-circle user-avatar"></i>
-                <span class="user-name">{{ user.first_name|default:user.username }}</span>
-            </div>
             <div class="notifications">
                 <i class="fas fa-bell"></i>
                 <span class="badge">2</span>
+            </div>
+            <div class="header-user-info">
+                <i class="fas fa-user-circle header-user-avatar"></i>
+                <div class="header-user-copy">
+                    <span class="header-user-name">{{ user.first_name|default:user.username }}</span>
+                    <span class="header-user-role">{% if user.is_superuser %}Administrador{% else %}Usuario{% endif %}</span>
+                </div>
             </div>
         </div>
     </div>
 </header>
 {% endblock %}
+
+        {% if messages %}
+        <div class="flash-stack">
+            {% for message in messages %}
+            <div class="flash-message flash-{{ message.tags|default:'info' }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         {% block content %}{% endblock %}
 
@@ -70,6 +130,8 @@
             </a>
         </nav>
         {% endblock %}
+            </div>
+        </div>
     </div>
 
     <script src="{% static 'js/main.js' %}"></script>

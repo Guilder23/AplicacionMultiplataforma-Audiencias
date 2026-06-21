@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Detalle - {{ audiencia.tipo_proceso }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/audiencias/detail.css' %}">
+{% endblock %}
 
 {% block header %}
 <header class="header detail-header">
@@ -38,92 +43,111 @@
 
 {% block content %}
 <main class="main-content">
-    <div class="container">
-        <div class="detail-header-info">
-            <div class="detail-title-card">
-                <h2>{{ audiencia.tipo_proceso }}</h2>
-                <p>NUREJ: {{ audiencia.nurej }}</p>
-            </div>
-            <div class="audiencia-status status-{{ audiencia.estado|lower|cut:' ' }}">
-                {{ audiencia.estado }}
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="detail-item">
-                <i class="fas fa-calendar-alt"></i>
-                <span class="detail-label">Fecha</span>
-                <span class="detail-value">{{ audiencia.fecha_hora|date:"d F, Y" }}</span>
-            </div>
-            <div class="detail-item">
-                <i class="fas fa-clock"></i>
-                <span class="detail-label">Hora</span>
-                <span class="detail-value">{{ audiencia.fecha_hora|time:"H:i" }}</span>
-            </div>
-            <div class="detail-item">
-                <i class="fas fa-door-open"></i>
-                <span class="detail-label">Sala</span>
-                <span class="detail-value">{{ audiencia.sala }}</span>
-            </div>
-            <div class="detail-item">
-                <i class="fas fa-user-tie"></i>
-                <span class="detail-label">Juez</span>
-                <span class="detail-value">{{ audiencia.juez }}</span>
-            </div>
-            <div class="detail-item">
-                <i class="fas fa-users"></i>
-                <span class="detail-label">Demandante</span>
-                <span class="detail-value">{{ audiencia.demandante }}</span>
-            </div>
-            <div class="detail-item">
-                <i class="fas fa-user"></i>
-                <span class="detail-label">Demandado</span>
-                <span class="detail-value">{{ audiencia.demandado }}</span>
-            </div>
-            <div class="detail-item">
-                <i class="fas fa-gavel"></i>
-                <span class="detail-label">Tipo de Audiencia</span>
-                <span class="detail-value">{{ audiencia.tipo_audiencia }}</span>
-            </div>
-            <div class="detail-item">
-                <i class="fas fa-sticky-note"></i>
-                <span class="detail-label">Observaciones</span>
-                <span class="detail-value">{{ audiencia.observaciones|default:"Sin observaciones" }}</span>
-            </div>
-            {% if audiencia.motivo_suspension %}
-                <div class="detail-item">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span class="detail-label">Motivo Suspensión</span>
-                    <span class="detail-value">{{ audiencia.motivo_suspension }}</span>
+    <div class="container audiencia-detail-page">
+        <div class="detail-layout">
+            <section class="detail-main-panel">
+                <div class="detail-header-info">
+                    <div class="detail-title-card">
+                        <h2>{{ audiencia.tipo_proceso }}</h2>
+                        <p>NUREJ: {{ audiencia.nurej }}</p>
+                    </div>
+                    <div class="audiencia-status status-{{ audiencia.estado|lower|cut:' ' }}">
+                        {{ audiencia.estado }}
+                    </div>
                 </div>
-            {% endif %}
-        </div>
 
-        <h3 class="section-title">Historial de cambios</h3>
-        <div class="card">
-            {% for item in audiencia.get_historial reversed %}
-                <div class="history-item">
-                    <div class="history-dot"></div>
-                    <div class="history-text">{{ item }}</div>
+                <div class="card">
+                    <div class="detail-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span class="detail-label">Fecha</span>
+                        <span class="detail-value">{{ audiencia.fecha_hora|date:"d F, Y" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-clock"></i>
+                        <span class="detail-label">Hora</span>
+                        <span class="detail-value">{{ audiencia.fecha_hora|time:"H:i" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-door-open"></i>
+                        <span class="detail-label">Sala</span>
+                        <span class="detail-value">{{ audiencia.sala }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-user-tie"></i>
+                        <span class="detail-label">Juez</span>
+                        <span class="detail-value">{{ audiencia.juez }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-users"></i>
+                        <span class="detail-label">Demandante</span>
+                        <span class="detail-value">{{ audiencia.demandante }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-user"></i>
+                        <span class="detail-label">Demandado</span>
+                        <span class="detail-value">{{ audiencia.demandado }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-gavel"></i>
+                        <span class="detail-label">Tipo de Audiencia</span>
+                        <span class="detail-value">{{ audiencia.tipo_audiencia }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-sticky-note"></i>
+                        <span class="detail-label">Observaciones</span>
+                        <span class="detail-value">{{ audiencia.observaciones|default:"Sin observaciones" }}</span>
+                    </div>
+                    {% if audiencia.motivo_suspension %}
+                        <div class="detail-item">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span class="detail-label">Motivo Suspensión</span>
+                            <span class="detail-value">{{ audiencia.motivo_suspension }}</span>
+                        </div>
+                    {% endif %}
                 </div>
-            {% empty %}
-                <p class="empty-text">No hay registros en el historial.</p>
-            {% endfor %}
-        </div>
 
-        <div class="action-buttons">
-            <a href="{% url 'audiencia_edit' audiencia.pk %}" class="btn btn-secondary">
-                Editar
-            </a>
-            <a href="{% url 'audiencia_delete' audiencia.pk %}" class="btn btn-danger">
-                Cancelar Audiencia
-            </a>
-        </div>
+                <h3 class="section-title">Historial de cambios</h3>
+                <div class="card">
+                    {% for item in audiencia.get_historial reversed %}
+                        <div class="history-item">
+                            <div class="history-dot"></div>
+                            <div class="history-text">{{ item }}</div>
+                        </div>
+                    {% empty %}
+                        <p class="empty-text">No hay registros en el historial.</p>
+                    {% endfor %}
+                </div>
+            </section>
 
-        <button class="btn btn-secondary btn-block" id="changeStatusBtnBottom">
-            <i class="fas fa-sync-alt"></i>
-            Cambiar Estado
-        </button>
+            <aside class="detail-side-panel">
+                <div class="card detail-summary-card">
+                    <h3>Resumen</h3>
+                    <ul class="detail-summary-list">
+                        <li><span>Tipo</span><strong>{{ audiencia.tipo_audiencia }}</strong></li>
+                        <li><span>Estado</span><strong>{{ audiencia.estado }}</strong></li>
+                        <li><span>Fecha</span><strong>{{ audiencia.fecha_hora|date:"d/m/Y" }}</strong></li>
+                        <li><span>Hora</span><strong>{{ audiencia.fecha_hora|time:"H:i" }}</strong></li>
+                    </ul>
+                </div>
+
+                <div class="card detail-actions-card">
+                    <h3>Acciones</h3>
+                    <div class="action-buttons">
+                        <a href="{% url 'audiencia_edit' audiencia.pk %}" class="btn btn-secondary">
+                            Editar
+                        </a>
+                        <a href="{% url 'audiencia_delete' audiencia.pk %}" class="btn btn-danger">
+                            Cancelar Audiencia
+                        </a>
+                    </div>
+
+                    <button class="btn btn-secondary btn-block" id="changeStatusBtnBottom">
+                        <i class="fas fa-sync-alt"></i>
+                        Cambiar Estado
+                    </button>
+                </div>
+            </aside>
+        </div>
     </div>
 </main>
 
@@ -162,55 +186,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-const dropdownBtn = document.getElementById('dropdownBtn');
-const dropdownMenu = document.getElementById('dropdownMenu');
-
-dropdownBtn.addEventListener('click', () => {
-    dropdownMenu.classList.toggle('show');
-});
-
-document.addEventListener('click', (e) => {
-    if (!dropdownBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
-        dropdownMenu.classList.remove('show');
-    }
-});
-
-const statusModal = document.getElementById('statusModal');
-const changeStatusBtn = document.getElementById('changeStatusBtn');
-const changeStatusBtnBottom = document.getElementById('changeStatusBtnBottom');
-const closeModal = document.getElementById('closeModal');
-const estadoSelect = document.getElementById('estado');
-const motivoSuspensionGroup = document.getElementById('motivoSuspensionGroup');
-
-function openModal() {
-    statusModal.classList.add('show');
-}
-
-function closeModalFn() {
-    statusModal.classList.remove('show');
-}
-
-changeStatusBtn.addEventListener('click', openModal);
-changeStatusBtnBottom.addEventListener('click', openModal);
-closeModal.addEventListener('click', closeModalFn);
-
-statusModal.addEventListener('click', (e) => {
-    if (e.target === statusModal) {
-        closeModalFn();
-    }
-});
-
-estadoSelect.addEventListener('change', () => {
-    if (estadoSelect.value === 'Suspendida') {
-        motivoSuspensionGroup.style.display = 'block';
-    } else {
-        motivoSuspensionGroup.style.display = 'none';
-    }
-});
-
-if (estadoSelect.value === 'Suspendida') {
-    motivoSuspensionGroup.style.display = 'block';
-}
-</script>
+<script src="{% static 'js/audiencias/detail.js' %}"></script>
 {% endblock %}

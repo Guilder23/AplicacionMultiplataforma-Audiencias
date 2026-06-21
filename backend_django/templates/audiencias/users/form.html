@@ -1,13 +1,18 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ title }} - Sistema de Audiencias{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/audiencias/users/form.css' %}">
+{% endblock %}
+
 {% block content %}
 <main class="main-content">
-    <div class="container">
+    <div class="container user-form-page">
         <h1 class="page-title">{{ title }}</h1>
         
-        <form method="post" class="form-container">
+        <form method="post" class="form-container card user-form-card">
             {% csrf_token %}
             
             {% if form.non_field_errors %}
@@ -77,4 +82,8 @@
         </form>
     </div>
 </main>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/audiencias/users/form.js' %}"></script>
 {% endblock %}

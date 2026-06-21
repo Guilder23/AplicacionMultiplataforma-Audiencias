@@ -1,0 +1,9 @@
+﻿.user-form-card {
+    padding: 24px;
+}
+
+@media (min-width: 1100px) {
+    .user-form-page {
+        max-width: 900px;
+    }
+}

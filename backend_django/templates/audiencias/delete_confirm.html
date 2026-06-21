@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Eliminar - {{ audiencia.tipo_proceso }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/audiencias/delete_confirm.css' %}">
+{% endblock %}
 
 {% block header %}
 <header class="header detail-header">
@@ -13,6 +18,10 @@
         </div>
     </div>
 </header>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/audiencias/delete_confirm.js' %}"></script>
 {% endblock %}
 
 {% block content %}

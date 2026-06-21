@@ -1,0 +1,130 @@
+.dashboard-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.dashboard-toolbar {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.dashboard-toolbar .search-bar {
+    flex: 1;
+    min-width: 260px;
+}
+
+.dashboard-create-btn {
+    white-space: nowrap;
+    background: linear-gradient(135deg, #B0122B 0%, #8F0C22 100%);
+    border-radius: 14px;
+    padding: 14px 24px;
+    font-weight: 600;
+}
+
+.dashboard-mobile-btn {
+    margin-bottom: 20px;
+}
+
+.dashboard-desktop-grid {
+    display: none;
+}
+
+.mini-calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.mini-calendar-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.mini-calendar-nav {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: white;
+    color: var(--primary);
+    cursor: pointer;
+}
+
+.mini-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.mini-calendar-weekday,
+.mini-calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.mini-calendar-weekday {
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.mini-calendar-day {
+    background: #F4F6F9;
+    font-weight: 500;
+}
+
+.mini-calendar-day.is-today {
+    border: 2px solid #B0122B;
+    color: #B0122B;
+    font-weight: 700;
+}
+
+.mini-calendar-day.is-selected {
+    background: linear-gradient(135deg, #B0122B 0%, #8F0C22 100%);
+    color: white;
+}
+
+.dashboard-quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 1100px) {
+    .dashboard-desktop-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.8fr) minmax(360px, 1fr);
+        gap: 28px;
+        align-items: start;
+    }
+
+    .dashboard-stats-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin-top: 0;
+        margin-bottom: 28px;
+        gap: 16px;
+    }
+
+    .dashboard-section-card {
+        padding: 28px;
+    }
+
+    .dashboard-audiencia-card {
+        margin-bottom: 14px;
+    }
+
+    .dashboard-side-column {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+    }
+
+    .mini-calendar-card {
+        padding: 28px;
+    }
+}
