@@ -1,0 +1,34 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+*.swp
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+
+# Flutter / Dart
+App-Audiencias/.dart_tool/
+App-Audiencias/.flutter-plugins
+App-Audiencias/.flutter-plugins-dependencies
+App-Audiencias/build/
+App-Audiencias/.pub-cache/
+App-Audiencias/.pub/
+
+# Android
+App-Audiencias/android/.gradle/
+App-Audiencias/android/app/.cxx/
+App-Audiencias/android/local.properties
+App-Audiencias/android/key.properties
+App-Audiencias/android/keystore/
+
+# iOS/macOS/Linux/Windows generated files
+App-Audiencias/ios/Flutter/Generated.xcconfig
+App-Audiencias/ios/Flutter/flutter_export_environment.sh
+App-Audiencias/macos/Flutter/ephemeral/
+App-Audiencias/linux/flutter/ephemeral/
+App-Audiencias/windows/flutter/ephemeral/
+
+# Logs
+*.log
